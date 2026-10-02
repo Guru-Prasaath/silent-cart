@@ -158,7 +158,7 @@ class Deck:
 
     @staticmethod
     def notes(s, text):
-        """Speaker notes: one idea per line (line breaks are kept in PowerPoint's notes pane)."""
+        """Speaker notes: key message first, then one idea per line (line breaks are kept in PowerPoint)."""
         s.notes_slide.notes_text_frame.text = "\n".join(line.strip() for line in text.strip().splitlines())
 
 
@@ -192,8 +192,7 @@ def build() -> str:
            0.8, 4.35, 11, 0.9, size=18, color=MINT)
     d.text(s, [[("Guru Prasaath D", {"bold": True, "color": WHITE, "size": 15}),
                 ("   ·   Data Science  ·  Tailwyndz Propel Internship assessment", {"color": MINT})]], 0.8, 6.4, 11, 0.5, size=12)
-    d.notes(s, """MAIN POINT: Most of the "churn" has already happened. I will show how to stop the rest.
-    SAY:
+    d.notes(s, """Most of the "churn" has already happened. I will show how to stop the rest.
     - Good morning. I am Guru Prasaath.
     - FreshBasket asked two questions: which loyalty members will stop shopping, and what should we do about it?
     - Today they send the same offer to everyone. That wastes money.
@@ -202,7 +201,7 @@ def build() -> str:
     2. Members show warning signs about 2 months before they leave.
     3. A model that catches 3 out of 4 leavers, on data it never saw.
     4. A targeted plan that makes money instead of losing it.
-    NEXT: Let me start with the answer.""")
+    Let me start with the answer.""")
 
     # 2 ── Executive summary
     s = d.slide(title="The answer in one slide", kicker="Executive summary")
@@ -220,14 +219,12 @@ def build() -> str:
                   ("Score monthly, act selectively: ", "service call, personalised coupon or win-back, chosen per member by expected value"),
                   ("Prove it: ", "20% hold-out control group for one quarter before scaling")],
               0.95, 5.1, 11.5, 1.6, size=15, color=WHITE, gap=6)
-    d.notes(s, f"""MAIN POINT: Four numbers tell the whole story.
-    SAY:
+    d.notes(s, f"""Four numbers tell the whole story.
     - {k['share_churners_already_lapsed']:.0%}: most members labelled "churned" had already stopped buying BEFORE April. They need a win-back offer, not a prediction.
     - {tc['recall']:.0%}: among members who are still shopping, the model finds {tc['recall']:.0%} of the ones who leave. When it flags someone, it is right {tc['precision']:.0%} of the time. Normally only about 1 in 10 leave.
     - {r(act.tickets_6m >= 3):.0%}: members with 3 or more support tickets leave at {r(act.tickets_6m >= 3):.0%}, compared with {r(act.tickets_6m == 0):.0%} for members with none. Service problems drive churn.
     - {amount(E.net_value)}: my targeted plan earns {amount(E.net_value)}. Today's coupon-for-everyone loses {amount(A.net_value)}.
-    POINT AT: the dark box at the bottom. These are my 3 recommendations. I will come back to them at the end.
-    NEXT: First, I checked whether the data could be trusted.""")
+    First, I checked whether the data could be trusted.""")
 
     # 3 ── Data quality
     s = d.slide(title="We fixed the data before trusting it, and found the label leaks", kicker="Data quality")
@@ -249,15 +246,13 @@ def build() -> str:
                 (f"adding the leaky columns would inflate Active-member PR-AUC from {chk.iloc[1].pr_auc_active:.2f} to "
                  f"{chk.iloc[2].pr_auc_active:.2f}. An automated test also proves our features ignore all post-cut-off data.", {})]],
            6.9, 5.8, 5.9, 1.0, size=13)
-    d.notes(s, f"""MAIN POINT: I cleaned the data first, and I found 3 columns that "cheat".
-    SAY:
+    d.notes(s, f"""I cleaned the data first, and I found 3 columns that "cheat".
     - I ran {len(dq)} data checks. Every check is logged in a file.
     - Problems I fixed: a hidden header row, duplicate rows, 55 broken spend values, impossible zeros and missing months.
     - Broken spend: "spend = transactions x basket size" is true for 99.8% of rows. So I could rebuild the wrong values exactly, without deleting any data.
     - Most important: 3 columns in the label table use April-June data. That is the period we are trying to predict. It is like seeing the exam answers. This is called "leakage".
     - I removed them. With them, the score would look better than it really is: {chk.iloc[1].pr_auc_active:.2f} would become {chk.iloc[2].pr_auc_active:.2f}. An automatic test makes sure this cannot happen again.
-    POINT AT: the orange dots on the chart. These are the broken spend values.
-    NEXT: Once the data was clean, one chart changed my whole approach.""")
+    Once the data was clean, one chart changed my whole approach.""")
 
     # 4 ── Two churns
     s = d.slide(title="Two different churn problems hide inside one number", kicker="What churn really looks like")
@@ -266,16 +261,14 @@ def build() -> str:
            8.5, 1.75, 4.3, color=ORANGE, size=32, h=2.25)
     d.stat(s, f"{k['n_active']:,} · {k['churn_rate_active']:.1%}", "ACTIVE: bought in Jan-Mar 2024. A genuine early-warning problem. Action: model + targeted retention",
            8.5, 4.2, 4.3, color=GREEN, size=32, h=2.25)
-    d.notes(s, f"""MAIN POINT: There are two different kinds of churn hidden in one number.
-    SAY:
+    d.notes(s, f"""There are two different kinds of churn hidden in one number.
     - This chart shows churn by "months since the member's last purchase".
     - Bought last month: about 3% leave. Missed 1 month: {eng[eng.recency_months == 2].churned.mean():.0%}. Missed 2 months: {eng[eng.recency_months == 3].churned.mean():.0%}. Missed 3 or more: almost 100%.
     - So the official churn rate of {k['churn_rate_all']:.0%} mixes two groups:
     - LAPSED: {k['n_lapsed']} members who were already gone before April. A simple rule finds them.
     - ACTIVE: {k['n_active']:,} members still shopping. Only {k['churn_rate_active']:.1%} of them leave. This is where prediction really matters.
     - Any model looks brilliant on the lapsed group. So from now on I show results for ACTIVE members separately. That is the honest number.
-    POINT AT: the blue bars (active) and then the orange bars (lapsed).
-    NEXT: So what happens before an active member leaves?""")
+    So what happens before an active member leaves?""")
 
     # 5 ── Fingerprint
     s = d.slide(title="Churn has a fingerprint, and a two-month window to act", kicker="Early-warning signals")
@@ -285,8 +278,7 @@ def build() -> str:
              (f"{k['complaint_test']['churn_if_complaint']:.0%} vs {k['complaint_test']['churn_if_none']:.0%}", "churn with vs without a recent formal complaint (p < 0.001)")]
     for i, (v, lab) in enumerate(tiles):
         d.stat(s, v, lab, 0.6 + i * 4.1, 5.6, 3.9, color=ORANGE, size=28, h=1.3)
-    d.notes(s, f"""MAIN POINT: Leaving has warning signs, about 2 months in advance.
-    SAY:
+    d.notes(s, f"""Leaving has warning signs, about 2 months in advance.
     - I lined up every active member on their last purchase, and looked back 6 months.
     - Blue = members who stayed. Their behaviour is flat.
     - Orange = members who left. On average they buy less, use the app less and open fewer emails, and their support tickets jump.
@@ -296,8 +288,7 @@ def build() -> str:
     - app used less than once every 2 months: {r(act.app_l3 < 0.5):.0%} leave.
     - a formal complaint: {k['complaint_test']['churn_if_complaint']:.0%} leave, compared with {k['complaint_test']['churn_if_none']:.0%}.
     - All of these are statistically significant.
-    POINT AT: the "Support tickets" panel. The orange line shoots up at the end.
-    NEXT: Which signals matter most, and does membership tier protect us?""")
+    Which signals matter most, and does membership tier protect us?""")
 
     # 6 ── Engagement & support, tier
     s = d.slide(title="Support experience and engagement matter. Tier does not.", kicker="What drives churn")
@@ -308,15 +299,13 @@ def build() -> str:
                   ("Tier: ", f"Platinum churns like Silver ({tier['Platinum']:.0%} vs {tier['Silver']:.0%}); tier, age and tenure not significant (q > 0.6)"),
                   ("Signal split: ", f"behaviour + engagement = {sh_sel:.0%} (logistic) / {sh_ch:.0%} (boosting) of SHAP attribution")],
               9.0, 1.75, 3.8, 5.0, size=14, gap=12)
-    d.notes(s, f"""MAIN POINT: Service problems and low engagement matter. Membership tier does not.
-    SAY:
+    d.notes(s, f"""Service problems and low engagement matter. Membership tier does not.
     - The brief asked about three things: tier, marketing engagement and support experience.
     - Support: YES. 3 or more tickets means {r(act.tickets_6m >= 3):.0%} churn, compared with {r(act.tickets_6m == 0):.0%}.
     - Engagement: YES. App use and email opens are among the strongest signals in both models.
     - Tier: NO. Platinum members leave as often as Silver members ({tier['Platinum']:.0%} vs {tier['Silver']:.0%}). The expensive perks are not creating loyalty.
     - The bar at the bottom shows where the model's signal comes from: mostly behaviour and engagement.
-    POINT AT: the "Tier" bullet on the right.
-    NEXT: Before trusting any model, I tested it the honest way.""")
+    Before trusting any model, I tested it the honest way.""")
 
     # 7 ── Validation design
     s = d.slide(title="Validated the way it will be used: train on the past, test on an unseen quarter", kicker="Method")
@@ -346,15 +335,13 @@ def build() -> str:
     d.text(s, "Active-member PR-AUC under different validation set-ups (gradient boosting)", 0.6, 5.45, 12, 0.3, size=12, color=MUTED, italic=True)
     for i, (v, lab, col) in enumerate(tiles):
         d.stat(s, v, lab, 0.6 + i * 4.1, 5.8, 3.9, color=col, size=26, h=1.15)
-    d.notes(s, """MAIN POINT: I tested the model the way it will really be used: learn from the past, predict the future.
-    SAY:
+    d.notes(s, """I tested the model the way it will really be used: learn from the past, predict the future.
     - A random split mixes past and future data. The results look better than they really are.
     - Instead I trained on July and October 2023, tuned on January 2024, and tested ONCE on the real April-June 2024 answers.
     - The model only sees the 6 months before each date. It never sees the future.
     - The scores are calibrated: "30% risk" really means about 30 in 100 such members leave. This matters for the money calculations later.
     - Engineering: every model run is tracked in MLflow, and the feature code also runs in Spark for Databricks. I tested that it gives identical results.
-    POINT AT: the three boxes at the bottom. The honest test gives 0.81. The "cheating" columns would have given 0.87.
-    NEXT: So how good is the model?""")
+    So how good is the model?""")
 
     # 8 ── Results
     s = d.slide(title="On Active members, machine learning roughly doubles what a recency rule can do", kicker="Model results · unseen Apr-Jun 2024 quarter")
@@ -375,16 +362,14 @@ def build() -> str:
                   ("Honest framing: ", "on all members every model scores PR-AUC > 0.94 because lapsed members are easy. That number would mislead")],
               0.6, 4.25, 6.6, 2.6, size=13, gap=9)
     d.image(s, "09_calibration.png", 7.4, 4.95, 5.5, 2.0)
-    d.notes(s, f"""MAIN POINT: For active members, machine learning is about 2x better than a simple rule.
-    SAY:
+    d.notes(s, f"""For active members, machine learning is about 2x better than a simple rule.
     - A simple rule ("has not bought recently") scores {rule.pr_auc:.2f}.
     - My machine-learning models score about 0.8. (1.0 is perfect. Random guessing would score about 0.10.)
     - Logistic regression won on the tuning data, so I chose it. It is simple and easy to explain. Gradient boosting is about the same.
     - At my chosen threshold the model flags {k['high_risk_active']} members, and it catches 3 out of 4 real leavers.
     - The calibration chart (bottom right) shows the risk percentages can be trusted.
     - I also tried a deep-learning model (a GRU). It scores slightly higher{f" ({g['pr_auc']:.2f})" if g else ""}. My plan: run it in the background for one quarter, and switch only if it stays better.
-    POINT AT: the table. The bold row is the model I chose.
-    NEXT: A score alone is not enough. People need to know WHY.""")
+    A score alone is not enough. People need to know WHY.""")
 
     # 9 ── Drivers (SHAP) per member
     s = d.slide(title="Every member gets a score and three reasons the CRM team can act on", kicker="Explainability (SHAP)")
@@ -400,15 +385,13 @@ def build() -> str:
         d.text(s, row.top_3_drivers.replace("; ", "  ·  "), 7.35, y + 0.5, 5.25, 0.8, size=12, color=INK)
     d.text(s, "Drivers are SHAP contributions, grouped so the three reasons are always distinct (e.g. not three ways of saying 'stopped buying').",
            7.1, 6.5, 5.7, 0.5, size=11, color=MUTED)
-    d.notes(s, """MAIN POINT: Every member gets a risk score, three reasons, and a ready-to-send message.
-    SAY:
+    d.notes(s, """Every member gets a risk score, three reasons, and a ready-to-send message.
     - Left: what pushes risk up for the whole group: low purchases, low app and email use, and recent support tickets.
     - Right: what the store team sees for EACH member: the risk, plus 3 reasons in plain English.
     - One honest caution: these reasons explain the model. They do not prove cause. That is why I recommend a test before spending at scale.
     - The last step is automated too. An AI writes the message or call script from the same 3 reasons.
     - Safety checks block made-up promo codes, wrong apologies and any mention of tracking. If the AI fails a check, a safe template is used.
-    POINT AT: one member card on the right.
-    NEXT: Do we really need behaviour data, or is basic customer information enough?""")
+    Do we really need behaviour data, or is basic customer information enough?""")
 
     # 10 ── Ablation + segments
     s = d.slide(title="Behaviour predicts churn. Demographics alone are no better than chance.", kicker="Ablation & segments")
@@ -434,15 +417,14 @@ def build() -> str:
                   ("Engagement adds +{:.2f}, support +{:.2f} ".format(abw.pr_auc_active[2] - abw.pr_auc_active[1], abw.pr_auc_active[3] - abw.pr_auc_active[2]), "on top of behaviour"),
                   ("Segments ", "differ far less than behaviour: use them for logistics (which team, which channel), not for targeting")],
               7.9, 5.0, 4.9, 2.0, size=13, gap=8)
-    d.notes(s, f"""MAIN POINT: Behaviour predicts churn. Age, city and tier alone do not.
-    SAY:
+    d.notes(s, f"""Behaviour predicts churn. Age, city and tier alone do not.
     - I added the data groups one at a time (the bars on the right).
     - Demographics only: {abw.pr_auc_active[0]:.2f}. That is no better than guessing.
     - Add purchase behaviour: {abw.pr_auc_active[1]:.2f}. Add engagement: {abw.pr_auc_active[2]:.2f}. Add support: {abw.pr_auc_active[3]:.2f}.
     - Even without "months since last purchase", the model still scores about {ab[ab.variant != "With recency"].pr_auc_active.iloc[-1]:.1f}. So it finds real early warning signs.
     - Left chart, by city and tier: the differences are small. Austin and Columbus are the highest; members who joined in 2024 are the lowest.
     - So use segments to decide WHO acts (which store team), not WHO to target.
-    NEXT: Now the most important part for the business: the money.""")
+    Now the most important part for the business: the money.""")
 
     # 11 ── Scenarios
     s = d.slide(title="Targeting turns retention from a cost into a return", kicker="Retention scenarios · this cohort, next quarter")
@@ -455,15 +437,13 @@ def build() -> str:
                   ("Model what-if: ", f"resolving tickets cuts their mean risk {sw['mean_risk_before']:.0%} → {sw['mean_risk_after']:.0%} (upper bound)"),
                   ("Robust: ", f"targeted coupon breaks even at {B.break_even_uplift:.0%} uplift (assumed 15%); blanket never does in range")],
               6.2, 5.0, 6.6, 2.0, size=13, gap=8)
-    d.notes(s, f"""MAIN POINT: Targeting turns retention from a loss into a profit.
-    SAY:
+    d.notes(s, f"""Targeting turns retention from a loss into a profit.
     - My assumptions, stated clearly: a $10 coupon lowers a member's churn risk by 15%. A $15 service call lowers it by 25%. A member's value is 6 months of their spending, at a 25% margin.
     - Today's coupon for everyone costs about ${A.cost / 1000:,.0f}k and loses {amount(A.net_value)}. Most people were staying anyway, or had already left.
     - My plan gives each member at most one action, and only when it pays back. About {E.churners_prevented:.0f} members are kept, for ${E.cost / 1000:,.1f}k. That is a {amount(E.net_value)} profit.
     - Calling everyone with support tickets loses money. Calling only the members the model flags makes money.
     - Targeting still breaks even if the offers work only about {max(B.break_even_uplift / C.COUPON_RELATIVE_UPLIFT, C2.break_even_uplift / C.OUTREACH_RELATIVE_UPLIFT):.0%} as well as I assumed. The coupon for everyone never breaks even.
-    POINT AT: the red bar (today's approach), then the green bar (my plan).
-    NEXT: So here is what I recommend.""")
+    So here is what I recommend.""")
 
     # 12 ── Recommendations
     s = d.slide(dark=True, title="Recommendations: a 90-day plan", kicker="What to do next")
@@ -483,8 +463,7 @@ def build() -> str:
     d.text(s, [[("Production path on the Tailwyndz stack:  ", {"bold": True, "color": WHITE}),
                 ("Azure Data Factory → Delta (Databricks) → PySpark features → MLflow champion model → CRM queue + Dash Retention Console (Databricks Apps)  ·  monitor PR-AUC, calibration & PSI drift monthly", {"color": MINT})]],
            0.6, 5.95, 12.1, 0.8, size=13)
-    d.notes(s, f"""MAIN POINT: Six actions for the next 90 days.
-    SAY:
+    d.notes(s, f"""Six actions for the next 90 days.
     1. Report the two kinds of churn separately, and add an alert after 60 days with no purchase.
     2. Score every member each month, and give each one the single best action.
     3. Fix support problems fast, inside the 2-month warning window.
@@ -492,7 +471,7 @@ def build() -> str:
     5. Rethink tier perks. Platinum is not buying loyalty.
     6. Prove it before scaling: keep 20% of flagged members as a control group. About {int(k['ab_test_15pct']['total_members'])} flagged members are enough to measure a 15% effect.
     - Everything rebuilds with one command, and there is a live dashboard for the CRM team.
-    OPTIONAL (about 60 seconds, only if time allows): open the live dashboard, click a high-risk member, click "Draft with AI", then move one slider in the simulator.
+    - If time allows, a one-minute live demo: open a high-risk member in the dashboard, click "Draft with AI", then move one slider in the simulator.
     - Thank you. I am happy to take questions.""")
 
     C.PRESENTATION.mkdir(exist_ok=True)
@@ -504,41 +483,23 @@ def build() -> str:
 
 
 def write_speaker_notes(prs, wpm: int = 130) -> str:
-    """Export every slide's speaker notes to presentation/speaker_notes.md: an easy-to-read practice script."""
-    label = {"MAIN POINT:": "**Main point:**", "SAY:": "**Say:**", "POINT AT:": "**Point at:**", "NEXT:": "**Next slide:**",
-             "OPTIONAL": "**Optional**"}
+    """Export every slide's speaker notes to presentation/speaker_notes.md (a readable presenter script)."""
     total, body = 0, []
     for i, s in enumerate(prs.slides, 1):
         texts = [sh.text_frame.text.replace("\n", " ") for sh in s.shapes if sh.has_text_frame and sh.text_frame.text.strip()]
         title = next((t for t in texts if not t.isupper() and len(t) > 15), f"Slide {i}")
-        note = s.notes_slide.notes_text_frame.text.strip()
-        spoken = [ln for ln in note.splitlines() if not ln.startswith(("POINT AT:", "NEXT:", "OPTIONAL"))]
-        words = sum(len(ln.split()) for ln in spoken)
+        lines = s.notes_slide.notes_text_frame.text.strip().splitlines()
+        words = sum(len(ln.split()) for ln in lines)
         total += words
-        body += ["---", "", f"## Slide {i}: {title}", "", f"*About {words / wpm * 60:.0f} seconds*", ""]
-        for ln in note.splitlines():
-            key = next((k for k in label if ln.startswith(k)), None)
-            if key == "MAIN POINT:":
-                body += [f"{label[key]} {ln[len(key):].strip()}", ""]
-            elif key == "SAY:":
-                body += [label[key], ""]
-            elif key == "OPTIONAL":
-                body += ["", f"> **Optional:** {ln[len(key):].strip(' :(').rstrip(')')}"]
-            elif key:
-                body += ["", f"{label[key]} {ln[len(key):].strip()}"]
-            else:
-                body.append(ln)
+        body += ["---", "", f"## Slide {i}: {title}", "", f"*About {words / wpm * 60:.0f} seconds*", "",
+                 f"**{lines[0]}**", ""]
+        for ln in lines[1:]:
+            is_item = ln.startswith("- ") or ln[:2].rstrip(".").isdigit()
+            body += [ln] if is_item else ["", ln]          # plain sentences (e.g. the transition) get their own paragraph
         body.append("")
-    head = ["# Silent Cart: speaker notes (practice script)", "",
-            f"**Total speaking time: about {total / wpm:.0f} minutes** at {wpm} words per minute. With pauses and slide changes "
-            "this is 11-13 minutes, which fits the 10-15 minute slot.", "",
-            "**How to use this script**",
-            "- **Main point** is the one sentence the panel must remember from the slide. If you forget everything else, say this.",
-            "- **Say** lists short ideas, not a speech to memorise. Say them in your own words.",
-            "- **Point at** tells you where to look or point on the slide.",
-            "- **Next slide** is the bridge sentence that leads into the next slide.",
-            "- Slow down on **slide 4** (two kinds of churn) and **slide 11** (the money). Those are the moments the panel remembers.",
-            "- Open https://silent-cart.onrender.com/ a few minutes before presenting so the live demo is awake.", ""]
+    head = ["# Silent Cart: speaker notes", "",
+            f"Presenter script for the 12-slide deck (`churn_presentation.pptx`). Speaking time is about {total / wpm:.0f} minutes; "
+            "with slide changes the talk runs 11-13 minutes. The first line of each slide is its key message.", ""]
     path = C.PRESENTATION / "speaker_notes.md"
     path.write_text("\n".join(head + body))
     return str(path)

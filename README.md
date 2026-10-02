@@ -166,7 +166,7 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 | Ablation study | `outputs/ablation_study.csv`, figure 10 |
 | Retention scenario analysis | `outputs/retention_scenarios.csv`, `outputs/scenario_sensitivity.csv`, figures 14-15, `outputs/retention_action_list.csv` |
 | Final report | `reports/final_report.md`, `reports/final_report.pdf` |
-| 10-15 minute presentation | `presentation/churn_presentation.pptx` (12 slides, speaker notes); practice script in `presentation/speaker_notes.md` |
+| 10-15 minute presentation | `presentation/churn_presentation.pptx` (12 slides, speaker notes); presenter script in `presentation/speaker_notes.md` |
 | *Extra:* interactive dashboard | `app.py` + `assets/` (Dash Retention Console) |
 | *Extra:* next-quarter forecast | `outputs/next_quarter_watchlist.csv` |
 | *Extra:* model governance | `MODEL_CARD.md`, `.github/workflows/ci.yml` |
