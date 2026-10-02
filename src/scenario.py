@@ -7,6 +7,8 @@ Economics per member i (all assumptions in config.py):
 Uplifts are assumptions, not measured effects: a sensitivity sweep and break-even uplift are reported,
 and the support scenario is cross-checked with a model-based what-if.
 """
+from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -18,28 +20,45 @@ from .viz import apply_style, fig_titled, save
 apply_style()
 
 
+@dataclass(frozen=True)
+class Economics:
+    """Business assumptions behind every scenario; defaults come from config.py, the dashboard overrides them."""
+    horizon_months: float = C.VALUE_HORIZON_MONTHS
+    gross_margin: float = C.GROSS_MARGIN
+    coupon_cost: float = C.COUPON_COST
+    coupon_uplift: float = C.COUPON_RELATIVE_UPLIFT
+    outreach_cost: float = C.OUTREACH_COST
+    outreach_uplift: float = C.OUTREACH_RELATIVE_UPLIFT
+    winback_cost: float = C.WINBACK_COST
+    winback_rate: float = C.WINBACK_REACTIVATION
+
+
+DEFAULT = Economics()
+
+
 def _has_support_issue(df):
     return (df.tickets_6m >= 2) | (df.complaint_l3 == 1)
 
 
-def add_economics(df: pd.DataFrame) -> pd.DataFrame:
+def add_economics(df: pd.DataFrame, econ: Economics = DEFAULT) -> pd.DataFrame:
     df = df.copy()
     df["value_monthly_spend"] = df.value_monthly_spend.fillna(df.value_monthly_spend.median())
-    df["margin_value"] = df.value_monthly_spend * C.VALUE_HORIZON_MONTHS * C.GROSS_MARGIN
-    df["revenue_at_risk"] = df.churn_probability * df.value_monthly_spend * C.VALUE_HORIZON_MONTHS
+    df["margin_value"] = df.value_monthly_spend * econ.horizon_months * econ.gross_margin
+    df["revenue_at_risk"] = df.churn_probability * df.value_monthly_spend * econ.horizon_months
     return df
 
 
-def _result(name, desc, df, target, uplift, cost_each, base_churners):
+def _result(name, desc, df, target, uplift, cost_each, base_churners, econ: Economics = DEFAULT):
     """`uplift` applies to Active members; for Lapsed members any offer is effectively a win-back,
     so its effect is capped at the win-back reactivation rate (they have already left)."""
     t = df[target]
-    u = np.where(t.segment == "Lapsed", min(uplift, C.WINBACK_REACTIVATION), uplift)
+    u = np.where(t.segment == "Lapsed", min(uplift, econ.winback_rate), uplift)
     prevented = (t.churn_probability * u).sum()
     margin = (t.churn_probability * u * t.margin_value).sum()
     cost = cost_each * len(t)
     act = df.segment == "Active"
     prevented_active = (t.churn_probability * u)[t.segment == "Active"].sum()
+    denom = (t.churn_probability * t.margin_value).sum()
     return {
         "scenario": name, "description": desc, "members_targeted": len(t),
         "expected_churners_in_target": t.churn_probability.sum(),
@@ -51,7 +70,7 @@ def _result(name, desc, df, target, uplift, cost_each, base_churners):
         "active_churn_after": (df.churn_probability[act].sum() - prevented_active) / act.sum(),
         "cost": cost, "margin_retained": margin, "net_value": margin - cost,
         "roi": (margin - cost) / cost if cost else np.nan,
-        "break_even_uplift": cost / (t.churn_probability * t.margin_value).sum() if len(t) else np.nan,  # if all members responded alike
+        "break_even_uplift": cost / denom if denom else np.nan,  # if all members responded alike
         "assumed_relative_uplift": uplift, "cost_per_member": cost_each,
     }
 
@@ -68,13 +87,13 @@ def model_whatif_support(cm, df: pd.DataFrame, target) -> dict:
             "relative_reduction": 1 - after.mean() / before.mean(), "churners_prevented": (before - after).sum()}
 
 
-def next_best_action(df: pd.DataFrame) -> pd.DataFrame:
+def next_best_action(df: pd.DataFrame, econ: Economics = DEFAULT) -> pd.DataFrame:
     """Pick the action with the highest expected net value per member; 'Monitor' if none pays back."""
     p, v = df.churn_probability, df.margin_value
     ev = pd.DataFrame({
-        "Personalised coupon": p * C.COUPON_RELATIVE_UPLIFT * v - C.COUPON_COST,
-        "Proactive service call": np.where(_has_support_issue(df), p * C.OUTREACH_RELATIVE_UPLIFT * v - C.OUTREACH_COST, -np.inf),
-        "Win-back offer": np.where(df.segment == "Lapsed", C.WINBACK_REACTIVATION * v - C.WINBACK_COST, -np.inf),
+        "Personalised coupon": p * econ.coupon_uplift * v - econ.coupon_cost,
+        "Proactive service call": np.where(_has_support_issue(df), p * econ.outreach_uplift * v - econ.outreach_cost, -np.inf),
+        "Win-back offer": np.where(df.segment == "Lapsed", econ.winback_rate * v - econ.winback_cost, -np.inf),
     }, index=df.index)
     ev.loc[df.segment == "Lapsed", ["Personalised coupon", "Proactive service call"]] = -np.inf
     best = ev.idxmax(axis=1)
@@ -85,31 +104,33 @@ def next_best_action(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def run(cm, df: pd.DataFrame):
-    df = add_economics(df)
+def simulate(df: pd.DataFrame, threshold: float, econ: Economics = DEFAULT):
+    """Scenario table A-E for a scored cohort (needs churn_probability, segment, value and support columns).
+    Pure function: used by the pipeline and by the dashboard's live simulator."""
+    df = add_economics(df, econ)
     base = df.churn_probability.sum()
     act = df.segment == "Active"
-    flagged = act & (df.churn_probability >= cm.threshold)
+    flagged = act & (df.churn_probability >= threshold)
     support = act & _has_support_issue(df)
     rows = [
         _result("A. Blanket coupon (status quo)", "Coupon to every eligible member", df,
-                np.ones(len(df), bool), C.COUPON_RELATIVE_UPLIFT, C.COUPON_COST, base),
+                np.ones(len(df), bool), econ.coupon_uplift, econ.coupon_cost, base, econ),
         _result("B. Targeted coupon", "Coupon only to Active members the model flags", df,
-                flagged.to_numpy(), C.COUPON_RELATIVE_UPLIFT, C.COUPON_COST, base),
+                flagged.to_numpy(), econ.coupon_uplift, econ.coupon_cost, base, econ),
         _result("C1. Support outreach, rule-based", "Service call to every Active member with 2+ tickets or a recent complaint",
-                df, support.to_numpy(), C.OUTREACH_RELATIVE_UPLIFT, C.OUTREACH_COST, base),
+                df, support.to_numpy(), econ.outreach_uplift, econ.outreach_cost, base, econ),
         _result("C2. Support outreach, model-targeted", "Service call only to support-issue members the model also flags",
-                df, (support & flagged).to_numpy(), C.OUTREACH_RELATIVE_UPLIFT, C.OUTREACH_COST, base),
+                df, (support & flagged).to_numpy(), econ.outreach_uplift, econ.outreach_cost, base, econ),
         _result("D. Win-back for lapsed", "Reactivation offer to members silent 3+ months", df,
-                (df.segment == "Lapsed").to_numpy(), C.WINBACK_REACTIVATION, C.WINBACK_COST, base),
+                (df.segment == "Lapsed").to_numpy(), econ.winback_rate, econ.winback_cost, base, econ),
     ]
-    nba = next_best_action(df)
+    nba = next_best_action(df, econ)
     # E: per-member best action (each member gets at most one treatment)
     parts = []
-    for action, uplift, cost in [("Personalised coupon", C.COUPON_RELATIVE_UPLIFT, C.COUPON_COST),
-                                 ("Proactive service call", C.OUTREACH_RELATIVE_UPLIFT, C.OUTREACH_COST),
-                                 ("Win-back offer", C.WINBACK_REACTIVATION, C.WINBACK_COST)]:
-        parts.append(_result(action, "", df, (nba.recommended_action == action).to_numpy(), uplift, cost, base))
+    for action, uplift, cost in [("Personalised coupon", econ.coupon_uplift, econ.coupon_cost),
+                                 ("Proactive service call", econ.outreach_uplift, econ.outreach_cost),
+                                 ("Win-back offer", econ.winback_rate, econ.winback_cost)]:
+        parts.append(_result(action, "", df, (nba.recommended_action == action).to_numpy(), uplift, cost, base, econ))
     e = {"scenario": "E. Next-best-action playbook",
          "description": "Each member gets the single action with positive expected value (coupon / service call / win-back)",
          "members_targeted": sum(r["members_targeted"] for r in parts),
@@ -118,14 +139,18 @@ def run(cm, df: pd.DataFrame):
          "cost": sum(r["cost"] for r in parts), "margin_retained": sum(r["margin_retained"] for r in parts)}
     e["share_of_all_expected_churners"] = e["expected_churners_in_target"] / base
     e["net_value"] = e["margin_retained"] - e["cost"]
-    e["roi"] = e["net_value"] / e["cost"]
+    e["roi"] = e["net_value"] / e["cost"] if e["cost"] else np.nan
     e["churn_rate_before"] = df.churn_probability.mean()
     e["churn_rate_after"] = (base - e["churners_prevented"]) / len(df)
     prevented_active = sum(r["churners_prevented"] for r in parts[:2])   # coupon + service call go to Active only
     e["active_churn_before"] = df.churn_probability[act].mean()
     e["active_churn_after"] = (df.churn_probability[act].sum() - prevented_active) / act.sum()
     rows.append(e)
-    table = pd.DataFrame(rows)
+    return pd.DataFrame(rows), df, nba, flagged, support
+
+
+def run(cm, df: pd.DataFrame):
+    table, df, nba, flagged, support = simulate(df, cm.threshold)
     table.round(4).to_csv(C.OUTPUTS / "retention_scenarios.csv", index=False)
     whatif = model_whatif_support(cm, df, support.to_numpy())
     pd.DataFrame([whatif]).round(4).to_csv(C.OUTPUTS / "scenario_support_model_whatif.csv", index=False)

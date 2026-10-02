@@ -1,0 +1,92 @@
+t,survival,dimension,group
+0.0,1.0,early_support,Complaint in first 3 months
+1.0,0.92063,early_support,Complaint in first 3 months
+2.0,0.88795,early_support,Complaint in first 3 months
+3.0,0.87109,early_support,Complaint in first 3 months
+4.0,0.85891,early_support,Complaint in first 3 months
+5.0,0.82129,early_support,Complaint in first 3 months
+6.0,0.79522,early_support,Complaint in first 3 months
+7.0,0.76871,early_support,Complaint in first 3 months
+8.0,0.74101,early_support,Complaint in first 3 months
+9.0,0.73374,early_support,Complaint in first 3 months
+10.0,0.69669,early_support,Complaint in first 3 months
+11.0,0.66502,early_support,Complaint in first 3 months
+12.0,0.6132,early_support,Complaint in first 3 months
+0.0,1.0,early_support,No early complaint
+1.0,0.96398,early_support,No early complaint
+2.0,0.9305,early_support,No early complaint
+3.0,0.89364,early_support,No early complaint
+4.0,0.85941,early_support,No early complaint
+5.0,0.83573,early_support,No early complaint
+6.0,0.80339,early_support,No early complaint
+7.0,0.7823,early_support,No early complaint
+8.0,0.75665,early_support,No early complaint
+9.0,0.72518,early_support,No early complaint
+10.0,0.70779,early_support,No early complaint
+11.0,0.68567,early_support,No early complaint
+12.0,0.66227,early_support,No early complaint
+0.0,1.0,early_app_use,App use < 1/month early
+1.0,0.91026,early_app_use,App use < 1/month early
+2.0,0.8573,early_app_use,App use < 1/month early
+3.0,0.80565,early_app_use,App use < 1/month early
+4.0,0.76051,early_app_use,App use < 1/month early
+5.0,0.69624,early_app_use,App use < 1/month early
+6.0,0.63979,early_app_use,App use < 1/month early
+7.0,0.6204,early_app_use,App use < 1/month early
+8.0,0.58414,early_app_use,App use < 1/month early
+9.0,0.53724,early_app_use,App use < 1/month early
+10.0,0.51963,early_app_use,App use < 1/month early
+11.0,0.49663,early_app_use,App use < 1/month early
+12.0,0.4573,early_app_use,App use < 1/month early
+0.0,1.0,early_app_use,App use >= 1/month early
+1.0,0.96925,early_app_use,App use >= 1/month early
+2.0,0.93957,early_app_use,App use >= 1/month early
+3.0,0.9078,early_app_use,App use >= 1/month early
+4.0,0.87815,early_app_use,App use >= 1/month early
+5.0,0.86082,early_app_use,App use >= 1/month early
+6.0,0.83372,early_app_use,App use >= 1/month early
+7.0,0.8117,early_app_use,App use >= 1/month early
+8.0,0.78785,early_app_use,App use >= 1/month early
+9.0,0.76182,early_app_use,App use >= 1/month early
+10.0,0.74229,early_app_use,App use >= 1/month early
+11.0,0.71928,early_app_use,App use >= 1/month early
+12.0,0.69584,early_app_use,App use >= 1/month early
+0.0,1.0,tier,Gold
+1.0,0.95595,tier,Gold
+2.0,0.9343,tier,Gold
+3.0,0.90155,tier,Gold
+4.0,0.8731,tier,Gold
+5.0,0.84036,tier,Gold
+6.0,0.818,tier,Gold
+7.0,0.79496,tier,Gold
+8.0,0.78087,tier,Gold
+9.0,0.74782,tier,Gold
+10.0,0.71988,tier,Gold
+11.0,0.68603,tier,Gold
+12.0,0.6685,tier,Gold
+0.0,1.0,tier,Platinum
+1.0,0.98718,tier,Platinum
+2.0,0.92137,tier,Platinum
+3.0,0.87193,tier,Platinum
+4.0,0.84922,tier,Platinum
+5.0,0.82537,tier,Platinum
+6.0,0.78653,tier,Platinum
+7.0,0.77651,tier,Platinum
+8.0,0.7558,tier,Platinum
+9.0,0.72341,tier,Platinum
+10.0,0.71236,tier,Platinum
+11.0,0.70069,tier,Platinum
+12.0,0.68175,tier,Platinum
+0.0,1.0,tier,Silver
+1.0,0.956,tier,Silver
+2.0,0.92291,tier,Silver
+3.0,0.88991,tier,Silver
+4.0,0.85351,tier,Silver
+5.0,0.83274,tier,Silver
+6.0,0.7971,tier,Silver
+7.0,0.77378,tier,Silver
+8.0,0.73999,tier,Silver
+9.0,0.71365,tier,Silver
+10.0,0.69762,tier,Silver
+11.0,0.67835,tier,Silver
+12.0,0.64605,tier,Silver

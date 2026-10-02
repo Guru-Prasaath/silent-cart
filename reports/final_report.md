@@ -220,13 +220,13 @@ not who is targeted.
 
 Each step adds a feature group cumulatively (gradient boosting, test quarter):
 
-| Feature set | Features | PR-AUC all | PR-AUC Active | ROC-AUC Active |
+| Uplift to detect | Control members | Flagged members needed | Quarters at this volume | Eligible base for 1 quarter |
 |---|---|---|---|---|
-| Demographics only | 9 | 0.484 | 0.107 | 0.521 |
-| + Behavioural | 24 | 0.978 | 0.660 | 0.934 |
-| + Engagement | 33 | 0.986 | 0.774 | 0.957 |
-| + Support | 39 | 0.988 | 0.798 | 0.962 |
-| All features | 42 | 0.989 | 0.807 | 0.962 |
+| 10% | 324 | 1,619 | 9.0 | 21,413 |
+| 15% | 146 | 729 | 4.1 | 9,642 |
+| 20% | 83 | 415 | 2.3 | 5,478 |
+| 25% | 54 | 267 | 1.5 | 3,530 |
+| 30% | 38 | 186 | 1.0 | 2,461 |
 
 ![Ablation](../outputs/figures/10_ablation.png)
 
@@ -275,7 +275,86 @@ The playbook lowers expected churn among Active members from 10.4% to 9.1% next 
 and recovers about 32 lapsed members, for a net $3,559 on this cohort. The full ranked list, with action, value at risk and
 drivers per member, is in `outputs/retention_action_list.csv`.
 
-## 9. Recommendations
+## 9. Beyond the brief: advanced analytics
+
+### 9.1 Deep-learning challenger (champion / challenger)
+A GRU recurrent network (PyTorch) reads each member's raw 6-month activity sequence instead of hand-built trends. Same splits, weighting, calibration and threshold logic. It reaches **0.825** Active PR-AUC (95% CI 0.76-0.87) vs 0.794 for the deployed model, with 80% precision and 78% recall. A **paired bootstrap** puts the gain at +0.031 (95% CI -0.001 to +0.067; GRU better in 97% of resamples): likely real, but not yet proven. **Decision:** keep the transparent logistic model live (its per-member SHAP reasons drive the action list), shadow-score the GRU for one quarter, and promote it if the gain holds. This is a standard champion/challenger set-up.
+
+### 9.2 When do members leave? Survival analysis
+Kaplan-Meier curves of time to final purchase, landmarked at month 3 (groups are defined on each member's first 3 months, which
+avoids immortal-time bias), with log-rank tests:
+- **Early app use:** members using the app less than once a month early on are still buying at 12 months only 46% of the
+  time, vs 70% (p < 0.001). App onboarding is a lifetime-value lever.
+- **No difference:** early complaints (p = 0.28) and tier (p = 0.56). Support friction predicts churn
+  when it is *recent* (section 4), not early in the relationship.
+
+![Survival](../outputs/figures/19_survival_curves.png)
+
+### 9.3 Behavioural personas
+K-means on Active members' recent behaviour gives five messaging personas. Separation is modest (silhouette
+0.12), so personas tailor the *message* while the churn score decides *who* gets it.
+
+| Persona | Members | Observed churn | Mean predicted | Recommended play |
+|---|---|---|---|---|
+| Fading & frustrated | 215 | 60% | 62% | Service-recovery call first, then a preferred-category win-back coupon |
+| Ramping up | 81 | 9% | 10% | Reinforce the new habit: app onboarding and a 'next visit' reward |
+| Light & low-touch | 430 | 3% | 6% | Cross-category offers to deepen the basket; low-cost digital nudges |
+| Engaged but service-heavy | 551 | 3% | 2% | Fix friction fast (ticket follow-up); no discount needed while they still shop |
+| Loyal core | 438 | 0% | 0% | No discounts; recognition and referral rewards |
+
+![Personas](../outputs/figures/18_personas.png)
+
+### 9.4 Profit-optimal threshold
+Choosing the cut-off by money instead of F1 gives t = 0.45 ($1,229) vs
+t = 0.37 for F1. The profit curve is flat across a wide band, so the targeting decision is robust to the exact threshold.
+
+![Profit threshold](../outputs/figures/16_profit_threshold.png)
+
+### 9.5 Designing the experiment that replaces our assumptions
+The uplift assumptions should be measured, not argued about. Hold out 20% of flagged members as a control group and use a
+two-sided two-proportion test (α = 0.05, power 80%), baseline churn 76% among flagged members:
+
+| Uplift to detect | Control members | Flagged members needed | Quarters at this volume | Eligible base for 1 quarter |
+|---|---|---|---|---|
+| 10% | 324 | 1,619 | 9.0 | 21,413 |
+| 15% | 146 | 729 | 4.1 | 9,642 |
+| 20% | 83 | 415 | 2.3 | 5,478 |
+| 25% | 54 | 267 | 1.5 | 3,530 |
+| 30% | 38 | 186 | 1.0 | 2,461 |
+
+Detecting the assumed 15% uplift needs about 729 flagged members (146 in control). At this
+sample's volume (2,368 eligible members) that takes about 4 quarters. A programme with roughly
+9,642+ eligible members could read the result within a single quarter.
+
+### 9.6 Next quarter: who is likely to churn in Jul-Sep 2024
+The model is used as it would be in production: a snapshot at Jul-2024 built from Jan-Jun 2024 behaviour, with no label yet.
+
+| Segment | Members | Expected churners (90% interval) | Flagged high-risk | 6-month revenue at risk |
+|---|---|---|---|---|
+| Active | 1,657 | 149 (137-161) | 144 | $90,919 |
+| Lapsed | 817 | 800 | 817 | $445,324 |
+
+The ranked list with drivers and next best action is in `outputs/next_quarter_watchlist.csv`, and in the dashboard.
+
+### 9.7 Monitoring: drift and fairness
+- **Drift:** no feature exceeds PSI 0.25 (max 0.23, `tenure_months`, which drifts by design
+  as the program ages). 12 features sit in the 0.1-0.25 watch band, supporting quarterly retraining.
+- **Fairness:** recall and false-positive rates are similar across age bands and genders. Platinum recall is lower on few churners;
+  it is recorded as a watch item in `MODEL_CARD.md`.
+
+![Drift](../outputs/figures/17_feature_drift_psi.png)
+
+### 9.8 Silent Cart Retention Console (Dash)
+`python app.py` opens an interactive console with four tabs:
+- **Overview:** headline KPIs.
+- **Members:** filter today's action list or next quarter's watchlist, then click any member to see their churn probability,
+  SHAP reasons, persona, next best action and 18-month activity.
+- **Scenario simulator:** nine live assumption sliders, running the same scenario engine as this report.
+- **Insights:** survival, profit curve, drift, fairness and A/B sizing.
+
+Dash is natively supported on Databricks Apps, so the console can be deployed next to the model.
+
+## 10. Recommendations
 
 1. **Redefine the churn KPI.** Report *Lapsed* (no purchase 3+ months: win-back) separately from *At-risk Active*. Add a **60-day
    no-purchase trigger**: churn jumps from 3% to 38% after one missed month, and to 81% after two.
@@ -291,12 +370,13 @@ drivers per member, is in `outputs/retention_action_list.csv`.
    personalised content first.
 5. **Revisit tier benefits.** Platinum perks are not buying loyalty. Test engagement-based rewards (app streaks, category missions) instead of
    spend-only tiers.
-6. **Measure, don't assume.** Hold out 20% of flagged members as a control group for one quarter, measure the true uplift of each action,
-   and feed the measured effects back into `config.py`.
+6. **Measure, don't assume.** Hold out 20% of flagged members as a control group, which needs about 729 flagged members to
+   detect a 15% uplift (section 9.5). Measure the true uplift of each action and feed it back into `config.py`.
 7. **Operationalise on the existing stack.** Run a monthly Databricks job (Data Factory ingest → Delta → `spark_features.py` → MLflow
-   champion model → CRM queue), and monitor PR-AUC, calibration and feature drift each month.
+   champion model → CRM queue). Put the Retention Console on Databricks Apps. Monitor PR-AUC, calibration and PSI drift
+   each month, and shadow-score the GRU challenger.
 
-## 10. Assumptions
+## 11. Assumptions
 
 1. **Target.** CHURNED = no transactions in Apr-Jun 2024 for a member who purchased before April (official label, used as-is). Members who never purchased (120 in the label table), the 6 profiled members with no activity, and 5 labelled churners with no pre-April activity cannot be scored from history and are excluded, leaving 2,368 eligible members.
 2. **Missing months.** A month with no row *between* a member's first and last rows is lost data, not inactivity (the label table's MONTHS_OBSERVED counts these months as observed). Months *after* a member's last row are treated as zero activity, which is what a live system would see at scoring time.
@@ -309,7 +389,7 @@ drivers per member, is in `outputs/retention_action_list.csv`.
 9. **Economics (not measured, varied in sensitivity analysis).** Value of a retained member = 6 months of their typical monthly spend x 25% gross margin. Coupon: $10 cost, cuts churn probability by 15% (relative). Service call: $15, cuts it by 25%. Win-back: $5, reactivates 5%. Any offer to a Lapsed member is assumed to work only as well as a win-back.
 10. **Repeated members.** The same member can appear in up to two training snapshots, so training rows are not fully independent. This is standard for rolling-origin designs, and the test cohort is strictly later in time.
 
-## 11. Limitations
+## 12. Limitations
 
 - **One test quarter.** Results are validated on one forward quarter (with three earlier snapshots for training and validation). Seasonality
   beyond 18 months is untested.
@@ -326,7 +406,7 @@ drivers per member, is in `outputs/retention_action_list.csv`.
 - **Correlated features.** Several features are strongly correlated (transactions, spend, active months), so individual logistic
   coefficients and SHAP shares between correlated features should be read as a group, not one by one.
 
-## 12. Reproducibility and production path
+## 13. Reproducibility and production path
 
 - `python run_pipeline.py` regenerates every output, chart, the executed notebook, this report and the slide deck (about 1 minute).
 - Fixed seeds, pinned `requirements.txt`, and MLflow tracking for every model run (`outputs/mlflow_runs_summary.csv`).
@@ -335,3 +415,5 @@ drivers per member, is in `outputs/retention_action_list.csv`.
 - **Databricks / Spark:** `src/spark_features.py` is a PySpark port of the feature builder. Verified: identical outputs for 8,302 member-snapshots across 4 cut-offs (31 feature columns, zero mismatches).
   `notebooks/02_databricks_churn_job.py` shows the scheduled job on Azure Data Factory, Delta tables and the MLflow registry.
 - **API:** `uvicorn src.api:app` serves `/score` for real-time scoring, for example from the CRM.
+- **Dashboard:** `python app.py` (Dash). **CI:** GitHub Actions rebuilds the outputs and runs the tests on every push.
+  **Governance:** `MODEL_CARD.md` covers intended use, metrics, fairness and monitoring.

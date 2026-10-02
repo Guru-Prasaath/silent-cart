@@ -1,13 +1,17 @@
 # Silent Cart
 
+[![ci](https://github.com/Guru-Prasaath/silent-cart/actions/workflows/ci.yml/badge.svg)](https://github.com/Guru-Prasaath/silent-cart/actions/workflows/ci.yml)
+
 **Spotting FreshBasket loyalty members who go quiet before they churn: prediction, diagnosis & retention strategy.**
 
 Customer churn prediction for FreshBasket Retail's Silver/Gold/Platinum loyalty program (2,600 members, Jan-2023 to Jun-2024).
 One command rebuilds every output: data-quality audit, leakage-safe features, out-of-time validated models, SHAP drivers,
-ablation, retention economics, the executed EDA notebook, the final report (MD + PDF) and the slide deck.
+ablation, retention economics, survival analysis, personas, a deep-learning challenger, a next-quarter forecast,
+the executed EDA notebook, the final report (MD + PDF), the slide deck and the model card. An interactive Dash console sits on top.
 
 ```bash
-python run_pipeline.py
+python run_pipeline.py      # rebuild everything (~1 minute)
+python app.py               # Silent Cart Retention Console -> http://127.0.0.1:8050
 ```
 
 ## Key findings
@@ -19,6 +23,9 @@ python run_pipeline.py
 | **Churn has a fingerprint** | Purchases, app use and email opens fade over ~2 months while support tickets spike. 3+ tickets: 37% churn vs 4% with none. |
 | **Tier does not protect** | Platinum churns like Silver (34% vs 35%). Tier, age and tenure are not significant after FDR correction. |
 | **Targeting pays** | Blanket coupon (status quo): −$15.4k on this cohort. Next-best-action playbook: **+$3.6k**, at 84% lower cost. |
+| **Next quarter (Jul-Sep 2024)** | About **149 Active churners expected** (90% interval 137-161); 144 flagged for action now. |
+| **Deep learning helps a little** | A GRU on raw monthly sequences reaches Active PR-AUC 0.825 vs 0.794, winning in 97% of paired bootstrap resamples. It is deployed as a shadow challenger. |
+| **Early app use predicts customer life** | Members with low app use in their first 3 months: 46% still buying after 12 months vs 70% (log-rank p < 0.001). |
 
 Full narrative: [reports/final_report.md](reports/final_report.md) (and `.pdf`). Slides: [presentation/churn_presentation.pptx](presentation/churn_presentation.pptx), with speaker notes.
 
@@ -29,7 +36,9 @@ Full narrative: [reports/final_report.md](reports/final_report.md) (and `.pdf`).
 - **Leakage audit.** Three label-table columns use Apr-Jun 2024 data. They are excluded, and the inflation they would cause is measured (Active PR-AUC 0.80 → 0.87). A unit test corrupts all post-cut-off data and asserts that no feature changes.
 - **Repairs instead of deletions.** `spend = transactions × basket` holds for 99.8% of rows, so 55 corrupted spend values are rebuilt exactly. Missing months are treated as lost data, not zero activity.
 - **Calibrated probabilities plus economics.** Platt calibration makes scores usable as real odds. Each member gets a value at risk, a next best action (service call / coupon / win-back / monitor), and three plain-English SHAP drivers.
-- **Built for the Tailwyndz stack.** MLflow tracking, a PySpark port of the feature pipeline (verified to match pandas exactly on all 4 snapshots), a Databricks job notebook, a FastAPI scoring endpoint and pytest tests.
+- **Built for the Tailwyndz stack.** MLflow tracking, a PySpark port of the feature pipeline (verified to match pandas exactly on all 4 snapshots), a Databricks job notebook, a FastAPI scoring endpoint, GitHub Actions CI and pytest tests.
+- **Decision-grade extras.** A profit-optimal threshold curve, an A/B test power calculation (about 730 flagged members detect a 15% uplift), Kaplan-Meier survival with log-rank tests, k-means behavioural personas, PSI drift and fairness monitoring, and a [model card](MODEL_CARD.md).
+- **A product, not just a notebook.** The Dash **Retention Console** has four tabs: KPIs; a filterable action list with a member drill-down (SHAP reasons, persona, activity history); a live scenario simulator with 9 assumption sliders; and an insights tab. Dash runs natively on Databricks Apps.
 
 ## Setup
 
@@ -43,12 +52,15 @@ pip install -r requirements.txt
 
 Gradient boosting uses scikit-learn rather than LightGBM/XGBoost. Those need the OpenMP runtime (`libomp`) installed separately on macOS, and scikit-learn keeps the project installable with pip alone.
 
+Optional deep-learning challenger: `pip install -r requirements-dl.txt` (PyTorch). Without it the pipeline simply skips the GRU.
+
 ## Run
 
 ```bash
 python run_pipeline.py                     # full run, ~1 minute
 python run_pipeline.py --skip-notebook     # skip re-executing the EDA notebook
-python -m pytest -q                        # leakage, label, cleaning and API tests
+python -m pytest -q                        # leakage, labels, cleaning, API, scenario engine, dashboard
+python app.py                              # Retention Console; ?tab=members|sim|insights links straight to a tab
 uvicorn src.api:app                        # scoring API: GET /health, POST /score
 ```
 
@@ -73,9 +85,10 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 | 3. EDA & hypothesis tests | `src/analysis.py` | figures 01-06, `hypothesis_tests_active_segment.csv` |
 | 4. Models: rule, logistic, RF, GBM; calibration; threshold | `src/models.py` | `model_comparison.csv`, figures 07-09, `models/churn_model.joblib`, MLflow runs |
 | 5. SHAP drivers & segment risk | `src/explain.py` | `churn_predictions.csv`, `shap_feature_importance.csv`, `segment_risk.csv`, figures 11-13 |
-| 6. Retention scenarios & next best action | `src/scenario.py` | `retention_scenarios.csv`, `retention_action_list.csv`, figures 14-15 |
+| 6. Retention scenarios, next best action, personas, profit threshold, A/B design | `src/scenario.py`, `src/personas.py`, `src/business.py` | `retention_scenarios.csv`, `retention_action_list.csv`, `personas.csv`, `profit_threshold_curve.csv`, `ab_test_design.csv`, figures 14-16, 18 |
 | 7. Ablation & validation checks | `src/models.py` | `ablation_study.csv`, `validation_design_checks.csv`, figure 10 |
-| 8. Notebook, report, deck | `src/notebook.py`, `src/report.py`, `src/presentation.py` | `notebooks/01_data_quality_eda.ipynb`, `reports/`, `presentation/` |
+| 8. Survival, drift, fairness, GRU challenger, next-quarter forecast | `src/survival.py`, `src/monitoring.py`, `src/deep.py`, `src/forecast.py` | `survival_*.csv`, `drift_psi.csv`, `fairness_by_group.csv`, `deep_model_results.csv`, `next_quarter_watchlist.csv`, figures 17, 19 |
+| 9-10. Key metrics, model card, notebook, report, deck | `src/model_card.py`, `src/notebook.py`, `src/report.py`, `src/presentation.py` | `key_metrics.json`, `MODEL_CARD.md`, `notebooks/01_data_quality_eda.ipynb`, `reports/`, `presentation/` |
 
 ## Deliverables checklist (brief → file)
 
@@ -92,6 +105,9 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 | Retention scenario analysis | `outputs/retention_scenarios.csv`, `outputs/scenario_sensitivity.csv`, figures 14-15, `outputs/retention_action_list.csv` |
 | Final report | `reports/final_report.md`, `reports/final_report.pdf` |
 | 10-15 minute presentation | `presentation/churn_presentation.pptx` (12 slides, speaker notes) |
+| *Extra:* interactive dashboard | `app.py` + `assets/` (Dash Retention Console) |
+| *Extra:* next-quarter forecast | `outputs/next_quarter_watchlist.csv` |
+| *Extra:* model governance | `MODEL_CARD.md`, `.github/workflows/ci.yml` |
 
 ## Assumptions
 
@@ -118,6 +134,7 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 
 ## Limitations
 
+- **Soft personas.** Clusters are modest (silhouette ~0.12), so they are used for messaging, not targeting.
 - **One test quarter.** Small Active-churner count (164), so the 95% CI on Active PR-AUC is about ±0.06.
 - **Uplifts are assumed.** A hold-out control group is needed to measure them.
 - **SHAP and what-ifs are associational, not causal.**
@@ -127,9 +144,11 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 
 ```
 data/raw/            source workbook + brief          data/processed/   cleaned tables, training snapshots
-notebooks/           01 EDA (executed), 02 Databricks job
-src/                 config, data_quality, features, analysis, models, explain, scenario,
-                     report, presentation, notebook, spark_features, api, viz
+app.py, assets/      Dash Retention Console                MODEL_CARD.md     model governance
+notebooks/           01 EDA (executed), 02 Databricks job  .github/workflows CI (pipeline + tests)
+src/                 config, data_quality, features, analysis, models, explain, scenario, business,
+                     personas, survival, monitoring, deep, forecast, model_card, report, presentation,
+                     notebook, spark_features, api, viz
 scripts/             spark_parity_check.py            tests/            pytest suite
 outputs/             CSVs, figures/, models/           reports/          final_report.md/.pdf
 presentation/        churn_presentation.pptx

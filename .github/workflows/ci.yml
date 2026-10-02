@@ -1,0 +1,21 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pipeline-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Rebuild every output from the raw data (torch-free; GRU challenger is skipped)
+        run: python run_pipeline.py --skip-notebook --skip-report --skip-deck
+      - name: Tests (leakage, labels, cleaning, API, scenario engine, dashboard)
+        run: python -m pytest -q

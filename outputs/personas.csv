@@ -1,0 +1,6 @@
+persona,members,observed_churn,mean_predicted,revenue_at_risk,z_txn_l3,z_spend_change_pct,z_app_l3,z_email_l3,z_coupons_l3,z_promo_pct_6m,z_tickets_6m,z_categories_l3,z_avg_basket_l3,recommended_play
+Fading & frustrated,215,0.5953,0.6176,75390.7056,-1.6186,-0.792,-1.424,-0.6272,-0.8458,0.2494,0.831,-1.3689,-0.1488,"Service-recovery call first, then a preferred-category win-back coupon"
+Ramping up,81,0.0864,0.0973,3175.0155,-0.1443,3.2036,-0.5869,-0.0867,0.1899,0.3792,-0.1431,-0.0569,-0.0064,Reinforce the new habit: app onboarding and a 'next visit' reward
+Light & low-touch,430,0.0326,0.0572,16649.2032,-0.4847,-0.2987,-0.2495,-0.012,0.0286,-0.1211,-0.6459,-0.6152,0.1887,Cross-category offers to deepen the basket; low-cost digital nudges
+Engaged but service-heavy,551,0.0254,0.0219,9915.7032,0.4361,0.0118,0.4066,0.1228,0.1163,-0.0022,0.9205,0.4399,-0.0031,Fix friction fast (ticket follow-up); no discount needed while they still shop
+Loyal core,438,0.0023,0.0023,861.2466,0.7463,0.0741,0.5395,0.181,0.2055,-0.0711,-0.909,0.7306,-0.1067,No discounts; recognition and referral rewards

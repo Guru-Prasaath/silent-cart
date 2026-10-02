@@ -1,0 +1,6 @@
+relative_uplift_to_detect,baseline_churn_flagged,treated_churn,control_members,total_members,quarters_at_current_volume,flagged_per_quarter_this_cohort,eligible_base_for_one_quarter
+0.1,0.7585,0.6827,324,1619,9.0426,179,21413
+0.15,0.7585,0.6448,146,729,4.0715,179,9642
+0.2,0.7585,0.6068,83,415,2.313,179,5478
+0.25,0.7585,0.5689,54,267,1.4905,179,3530
+0.3,0.7585,0.531,38,186,1.039,179,2461

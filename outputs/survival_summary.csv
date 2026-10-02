@@ -1,0 +1,8 @@
+dimension,group,members,lapses,still_buying_after_12m,logrank_chi2,logrank_p
+early_support,Complaint in first 3 months,189,60,0.6132,1.17271,0.27884
+early_support,No early complaint,1749,510,0.66227,1.17271,0.27884
+early_app_use,App use < 1/month early,312,147,0.4573,71.36822,0.0
+early_app_use,App use >= 1/month early,1626,423,0.69584,71.36822,0.0
+tier,Gold,613,175,0.6685,1.15002,0.5627
+tier,Platinum,234,66,0.68175,1.15002,0.5627
+tier,Silver,1091,329,0.64605,1.15002,0.5627

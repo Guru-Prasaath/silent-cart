@@ -52,3 +52,25 @@ def test_api_scores_members():
     assert client.get("/health").json()["status"] == "ok"
     out = client.post("/score", json={"members": rows}).json()
     assert len(out) == 5 and all(0 <= r["churn_probability"] <= 1 for r in out)
+
+
+def test_scenario_engine_matches_pipeline_output():
+    """The dashboard's live simulator and the pipeline must produce identical numbers."""
+    from src.scenario import simulate
+    cohort = pd.read_csv(C.OUTPUTS / "modelling_dataset.csv").merge(
+        pd.read_csv(C.OUTPUTS / "churn_predictions.csv")[["customer_id", "churn_probability"]], on="customer_id")
+    import json
+    thr = json.loads((C.OUTPUTS / "key_metrics.json").read_text())["threshold"]
+    table, *_ = simulate(cohort, thr)
+    saved = pd.read_csv(C.OUTPUTS / "retention_scenarios.csv")
+    assert np.allclose(table.net_value.round(2), saved.net_value.round(2), atol=0.05)
+
+
+def test_dashboard_callbacks_render():
+    import app
+    for tab in ["overview", "members", "sim", "insights"]:
+        assert app.render(tab) is not None
+    rows, cols, summary = app.filter_members("current", ["Active"], ["High"], None, None, None, None)
+    assert rows and all(r["risk_band"] == "High" for r in rows)
+    kpis, fig, table = app.run_sim(10, 0.15, 15, 0.25, 5, 0.05, 0.25, 6, 0.37)
+    assert len(kpis) == 3

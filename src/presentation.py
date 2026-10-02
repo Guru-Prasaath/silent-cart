@@ -43,7 +43,7 @@ class Deck:
                 self.text(s, kicker.upper(), 0.6, 0.38, 12, 0.3, size=11, color=GREEN if not dark else MINT, bold=True)
             self.text(s, title, 0.6, 0.62, 12.1, 0.95, size=27, bold=True, color=WHITE if dark else INK)
         if not dark and self.n > 1:
-            self.text(s, f"FreshBasket loyalty churn  ·  {self.n}", 0.6, 7.05, 6, 0.3, size=9, color=MUTED)
+            self.text(s, f"Silent Cart  ·  FreshBasket loyalty churn  ·  {self.n}", 0.6, 7.05, 6, 0.3, size=9, color=MUTED)
         return s
 
     def text(self, s, text, x, y, w, h, size=14, color=INK, bold=False, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP,
@@ -328,7 +328,11 @@ def build() -> str:
     sel = int(tbl.index[tbl["Model"] == k["selected_model"]][0])
     d.table(s, tbl, 0.6, 1.75, 6.6, [1.85, 1.6, 0.9, 0.95, 0.7, 0.6], size=12, highlight_row=sel)
     d.image(s, "07_pr_curves.png", 7.4, 1.55, 5.5, 3.3)
-    d.bullets(s, [("Selected: ", f"{k['selected_model']} (best on validation). Gradient boosting is statistically tied; it stays as challenger and SHAP cross-check"),
+    g = (k.get("gru") or {}).get("Active only")
+    sel_txt = (f"{k['selected_model']} (best of the tabular models on validation). A GRU sequence model (PyTorch) scores "
+               f"{g['pr_auc']:.2f}, likely better: shadow-test it next quarter" if g else
+               f"{k['selected_model']} (best on validation). Gradient boosting is statistically tied")
+    d.bullets(s, [("Selected: ", sel_txt),
                   ("At threshold {:.2f}: ".format(k['threshold']), f"catches {tc['recall']:.0%} of Active churners, {tc['precision']:.0%} precision; top 10% of scores = {tc['lift_top10pct']:.1f}x lift"),
                   ("Honest framing: ", f"on all members every model scores PR-AUC > 0.94 because lapsed members are easy. That number would mislead")],
               0.6, 4.25, 6.6, 2.6, size=13, gap=9)
@@ -337,7 +341,9 @@ def build() -> str:
     it, to around 0.8, on a quarter they never saw. Logistic regression won on validation; gradient boosting scores a touch higher on
     test, but the confidence intervals overlap almost completely, so I deploy the simpler, transparent model and keep boosting as
     a challenger. At the tuned threshold we flag {k['high_risk_active']} active members and three out of four real churners are among them. The
-    calibration plot, bottom right, shows the probabilities can be trusted as real odds.""")
+    calibration plot, bottom right, shows the probabilities can be trusted as real odds. I also trained a GRU network on the
+    raw monthly sequences: it scores slightly higher and wins in 97% of bootstrap resamples, so the plan is to shadow-score it for a
+    quarter and promote it if the gain holds: champion and challenger.""")
 
     # 9 ── Drivers (SHAP) per member
     s = d.slide(title="Every member gets a score and three reasons the CRM team can act on", kicker="Explainability (SHAP)")
@@ -416,7 +422,7 @@ def build() -> str:
             ("Fix the support loop", "Close tickets within the 2-month window; prioritise model-flagged members"),
             ("Free nudges first", "Spend drop of 40%+ or app use under 0.5/month triggers app push and preferred-category content"),
             ("Rethink tier perks", "Platinum ≠ loyal: pilot engagement-based rewards, not spend-only tiers"),
-            ("Prove it", "20% hold-out control for one quarter; replace assumed uplifts with measured ones")]
+            ("Prove it", f"20% hold-out: ~{int(k['ab_test_15pct']['total_members'])} flagged members detect a 15% uplift; replace assumptions with measurements")]
     for i, (h_, t_) in enumerate(recs):
         col, row = i % 2, i // 2
         x, y = 0.6 + col * 6.15, 1.8 + row * 1.32
@@ -425,14 +431,15 @@ def build() -> str:
         d.text(s, h_, x + 0.85, y + 0.14, 4.9, 0.35, size=16, bold=True, color=WHITE)
         d.text(s, t_, x + 0.85, y + 0.5, 4.9, 0.6, size=12, color=MINT)
     d.text(s, [[("Production path on the Tailwyndz stack:  ", {"bold": True, "color": WHITE}),
-                ("Azure Data Factory → Delta (Databricks) → PySpark features → MLflow champion model → CRM action queue / FastAPI scoring  ·  monitor PR-AUC, calibration & drift monthly", {"color": MINT})]],
+                ("Azure Data Factory → Delta (Databricks) → PySpark features → MLflow champion model → CRM queue + Dash Retention Console (Databricks Apps)  ·  monitor PR-AUC, calibration & PSI drift monthly", {"color": MINT})]],
            0.6, 5.95, 12.1, 0.8, size=13)
     d.notes(s, """To close, six actions for the next 90 days. Split the churn KPI so management sees what retention can actually
     influence, and add a 60-day no-purchase trigger. Run the scoring and next-best-action list every month. Treat support as a
     retention lever and close the loop inside the two-month window. Use free nudges before paid offers. Revisit tier perks,
     since Platinum isn't buying loyalty. And prove the uplift with a hold-out control group before scaling, because the economics
-    rest on assumptions until we measure them. Everything I've shown regenerates from one command, and the feature pipeline is
-    already ported to Spark for Databricks. Thank you; happy to take questions.""")
+    rest on assumptions until we measure them; about 730 flagged members are enough to detect a 15% uplift. Everything I've shown
+    regenerates from one command, the feature pipeline is ported to Spark for Databricks, and there is a Dash retention console
+    where the CRM team can explore members and test their own assumptions. Thank you; happy to take questions.""")
 
     C.PRESENTATION.mkdir(exist_ok=True)
     path = C.PRESENTATION / "churn_presentation.pptx"

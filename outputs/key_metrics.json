@@ -60,5 +60,104 @@
     "Win-back offer": 408,
     "Proactive service call": 82,
     "Personalised coupon": 59
+  },
+  "profit_optimal_threshold": 0.45,
+  "profit_at_optimal": 1228.7309149167913,
+  "ab_test_15pct": {
+    "relative_uplift_to_detect": 0.15,
+    "baseline_churn_flagged": 0.758537614751976,
+    "treated_churn": 0.6447569725391796,
+    "control_members": 146.0,
+    "total_members": 729.0,
+    "quarters_at_current_volume": 4.071532059234427,
+    "flagged_per_quarter_this_cohort": 179.0,
+    "eligible_base_for_one_quarter": 9642.0
+  },
+  "personas_silhouette": 0.11798117548868067,
+  "survival_logrank_p": {
+    "early_app_use": 2.9640877032204825e-17,
+    "early_support": 0.27884451811645045,
+    "tier": 0.5626980934135624
+  },
+  "drift_max_psi": 0.2334005688020147,
+  "drift_n_watch": 12,
+  "gru": {
+    "All eligible": {
+      "params": "hidden=32, epochs=19",
+      "n": 2368,
+      "churn_rate": 0.3433277027027027,
+      "threshold": 0.4351417124271393,
+      "precision": 0.9556650246305419,
+      "recall": 0.9544895448954489,
+      "f1": 0.955076923076923,
+      "pr_auc": 0.9880214601102885,
+      "roc_auc": 0.9924680532978962,
+      "accuracy": 0.9691722972972973,
+      "brier": 0.025471212342381477,
+      "lift_top10pct": 2.912669126691267,
+      "pr_auc_ci_low": 0.9830455959325228,
+      "pr_auc_ci_high": 0.9923410497298951,
+      "valid_active_pr_auc": 0.8378597533525899,
+      "delta_vs_champion": NaN,
+      "delta_ci_low": NaN,
+      "delta_ci_high": NaN,
+      "p_gru_better": NaN
+    },
+    "Active only": {
+      "params": "hidden=32, epochs=19",
+      "n": 1715,
+      "churn_rate": 0.0956268221574344,
+      "threshold": 0.4351417124271393,
+      "precision": 0.7950310559006211,
+      "recall": 0.7804878048780488,
+      "f1": 0.7876923076923077,
+      "pr_auc": 0.8249195532268654,
+      "roc_auc": 0.9660604488056486,
+      "accuracy": 0.9597667638483965,
+      "brier": 0.03322763741016388,
+      "lift_top10pct": 7.782189449801475,
+      "pr_auc_ci_low": 0.7627645874768324,
+      "pr_auc_ci_high": 0.8738900300579402,
+      "valid_active_pr_auc": 0.8378597533525899,
+      "delta_vs_champion": 0.03092109056516712,
+      "delta_ci_low": -0.0014767279124725161,
+      "delta_ci_high": 0.06710178524506351,
+      "p_gru_better": 0.974
+    }
+  },
+  "next_quarter": {
+    "cutoff": "2024-07",
+    "window": "Jul-Sep 2024",
+    "members_scored": 2474,
+    "all": {
+      "members": 2474,
+      "expected_churners": 949.5928287291285,
+      "interval_90": [
+        935.9616902355968,
+        963.2239672226602
+      ],
+      "high_risk": 961,
+      "revenue_at_risk_6m": 536243.2036931296
+    },
+    "active": {
+      "members": 1657,
+      "expected_churners": 149.1509677549056,
+      "interval_90": [
+        137.2242877244277,
+        161.07764778538348
+      ],
+      "high_risk": 144,
+      "revenue_at_risk_6m": 90919.02447510306
+    },
+    "lapsed": {
+      "members": 817,
+      "expected_churners": 800.4418609742231,
+      "interval_90": [
+        793.8416912733411,
+        807.0420306751051
+      ],
+      "high_risk": 817,
+      "revenue_at_risk_6m": 445324.1792180265
+    }
   }
 }

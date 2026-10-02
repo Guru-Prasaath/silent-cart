@@ -136,6 +136,34 @@ def build_markdown() -> str:
     parity_txt = (f"Verified: identical outputs for {parity.members.sum():,} member-snapshots across {len(parity)} cut-offs "
                   f"({int(parity.features_compared.iloc[0])} feature columns, zero mismatches)." if parity is not None
                   else "Run `scripts/spark_parity_check.py` to verify.")
+    pers = pd.read_csv(O / "personas.csv")
+    pers_tbl = _table(pers[["persona", "members", "observed_churn", "mean_predicted", "recommended_play"]].rename(
+        columns={"persona": "Persona", "members": "Members", "observed_churn": "Observed churn", "mean_predicted": "Mean predicted",
+                 "recommended_play": "Recommended play"}),
+        {"Observed churn": lambda x: f"{x:.0%}", "Mean predicted": lambda x: f"{x:.0%}"})
+    ab_d = pd.read_csv(O / "ab_test_design.csv")
+    ab_tbl = _table(ab_d[["relative_uplift_to_detect", "control_members", "total_members", "quarters_at_current_volume",
+                          "eligible_base_for_one_quarter"]].rename(columns={
+        "relative_uplift_to_detect": "Uplift to detect", "control_members": "Control members", "total_members": "Flagged members needed",
+        "quarters_at_current_volume": "Quarters at this volume", "eligible_base_for_one_quarter": "Eligible base for 1 quarter"}),
+        {"Uplift to detect": lambda x: f"{x:.0%}", "Quarters at this volume": lambda x: f"{x:.1f}",
+         "Control members": lambda x: f"{int(x):,}", "Flagged members needed": lambda x: f"{int(x):,}",
+         "Eligible base for 1 quarter": lambda x: f"{int(x):,}"})
+    ab15 = ab_d[ab_d.relative_uplift_to_detect == 0.15].iloc[0]
+    surv = pd.read_csv(O / "survival_summary.csv")
+    app_s = surv[surv.dimension == "early_app_use"].set_index("group").still_buying_after_12m
+    sp = surv.groupby("dimension").logrank_p.first()
+    drift = pd.read_csv(O / "drift_psi.csv")
+    nq = k["next_quarter"]
+    g = (k.get("gru") or {}).get("Active only")
+    gru_txt = (f"A GRU recurrent network (PyTorch) reads each member's raw 6-month activity sequence instead of hand-built trends. "
+               f"Same splits, weighting, calibration and threshold logic. It reaches **{g['pr_auc']:.3f}** Active PR-AUC "
+               f"(95% CI {g['pr_auc_ci_low']:.2f}-{g['pr_auc_ci_high']:.2f}) vs {tc['pr_auc']:.3f} for the deployed model, with "
+               f"{g['precision']:.0%} precision and {g['recall']:.0%} recall. A **paired bootstrap** puts the gain at {g['delta_vs_champion']:+.3f} "
+               f"(95% CI {g['delta_ci_low']:+.3f} to {g['delta_ci_high']:+.3f}; GRU better in {g['p_gru_better']:.0%} of resamples): likely real, "
+               "but not yet proven. **Decision:** keep the transparent logistic model live (its per-member SHAP reasons drive the action list), "
+               "shadow-score the GRU for one quarter, and promote it if the gain holds. This is a standard champion/challenger set-up."
+               if g and "delta_vs_champion" in g else "The GRU challenger requires PyTorch (`pip install -r requirements-dl.txt`).")
     assumptions = "\n".join(f"{i}. {a.replace('{threshold}', f'{thr:.2f}')}" for i, a in enumerate(ASSUMPTIONS, 1))
 
     return f"""# Silent Cart: FreshBasket Loyalty Churn Prediction & Retention Strategy
@@ -342,7 +370,74 @@ The playbook lowers expected churn among Active members from {E.active_churn_bef
 and recovers about 32 lapsed members, for a net {_money(E.net_value)} on this cohort. The full ranked list, with action, value at risk and
 drivers per member, is in `outputs/retention_action_list.csv`.
 
-## 9. Recommendations
+## 9. Beyond the brief: advanced analytics
+
+### 9.1 Deep-learning challenger (champion / challenger)
+{gru_txt}
+
+### 9.2 When do members leave? Survival analysis
+Kaplan-Meier curves of time to final purchase, landmarked at month 3 (groups are defined on each member's first 3 months, which
+avoids immortal-time bias), with log-rank tests:
+- **Early app use:** members using the app less than once a month early on are still buying at 12 months only {app_s.min():.0%} of the
+  time, vs {app_s.max():.0%} (p < 0.001). App onboarding is a lifetime-value lever.
+- **No difference:** early complaints (p = {sp['early_support']:.2f}) and tier (p = {sp['tier']:.2f}). Support friction predicts churn
+  when it is *recent* (section 4), not early in the relationship.
+
+{_img('19_survival_curves.png', 'Survival')}
+
+### 9.3 Behavioural personas
+K-means on Active members' recent behaviour gives five messaging personas. Separation is modest (silhouette
+{k['personas_silhouette']:.2f}), so personas tailor the *message* while the churn score decides *who* gets it.
+
+{pers_tbl}
+
+{_img('18_personas.png', 'Personas')}
+
+### 9.4 Profit-optimal threshold
+Choosing the cut-off by money instead of F1 gives t = {k['profit_optimal_threshold']:.2f} ({_money(k['profit_at_optimal'])}) vs
+t = {thr:.2f} for F1. The profit curve is flat across a wide band, so the targeting decision is robust to the exact threshold.
+
+{_img('16_profit_threshold.png', 'Profit threshold')}
+
+### 9.5 Designing the experiment that replaces our assumptions
+The uplift assumptions should be measured, not argued about. Hold out 20% of flagged members as a control group and use a
+two-sided two-proportion test (α = 0.05, power 80%), baseline churn {ab15.baseline_churn_flagged:.0%} among flagged members:
+
+{ab_tbl}
+
+Detecting the assumed 15% uplift needs about {int(ab15.total_members):,} flagged members ({int(ab15.control_members)} in control). At this
+sample's volume (2,368 eligible members) that takes about {ab15.quarters_at_current_volume:.0f} quarters. A programme with roughly
+{int(ab15.eligible_base_for_one_quarter):,}+ eligible members could read the result within a single quarter.
+
+### 9.6 Next quarter: who is likely to churn in Jul-Sep 2024
+The model is used as it would be in production: a snapshot at Jul-2024 built from Jan-Jun 2024 behaviour, with no label yet.
+
+| Segment | Members | Expected churners (90% interval) | Flagged high-risk | 6-month revenue at risk |
+|---|---|---|---|---|
+| Active | {nq['active']['members']:,} | {nq['active']['expected_churners']:.0f} ({nq['active']['interval_90'][0]:.0f}-{nq['active']['interval_90'][1]:.0f}) | {nq['active']['high_risk']} | {_money(nq['active']['revenue_at_risk_6m'])} |
+| Lapsed | {nq['lapsed']['members']:,} | {nq['lapsed']['expected_churners']:.0f} | {nq['lapsed']['high_risk']} | {_money(nq['lapsed']['revenue_at_risk_6m'])} |
+
+The ranked list with drivers and next best action is in `outputs/next_quarter_watchlist.csv`, and in the dashboard.
+
+### 9.7 Monitoring: drift and fairness
+- **Drift:** no feature exceeds PSI 0.25 (max {drift.psi_test_vs_train.max():.2f}, `{drift.iloc[0].feature}`, which drifts by design
+  as the program ages). {int((drift.psi_test_vs_train > 0.1).sum())} features sit in the 0.1-0.25 watch band, supporting quarterly retraining.
+- **Fairness:** recall and false-positive rates are similar across age bands and genders. Platinum recall is lower on few churners;
+  it is recorded as a watch item in `MODEL_CARD.md`.
+
+{_img('17_feature_drift_psi.png', 'Drift')}
+
+### 9.8 Silent Cart Retention Console (Dash)
+`python app.py` opens an interactive console with four tabs:
+- **Overview:** headline KPIs.
+- **Members:** filter today's action list or next quarter's watchlist, then click any member to see their churn probability,
+  SHAP reasons, persona, next best action and 18-month activity.
+- **Scenario simulator:** nine live assumption sliders, running the same scenario engine as this report.
+- **Insights:** survival, profit curve, drift, fairness and A/B sizing.
+
+Dash is natively supported on Databricks Apps, so the console can be deployed next to the model.
+
+## 10. Recommendations
 
 1. **Redefine the churn KPI.** Report *Lapsed* (no purchase 3+ months: win-back) separately from *At-risk Active*. Add a **60-day
    no-purchase trigger**: churn jumps from 3% to {rec2:.0%} after one missed month, and to {rec3:.0%} after two.
@@ -358,16 +453,17 @@ drivers per member, is in `outputs/retention_action_list.csv`.
    personalised content first.
 5. **Revisit tier benefits.** Platinum perks are not buying loyalty. Test engagement-based rewards (app streaks, category missions) instead of
    spend-only tiers.
-6. **Measure, don't assume.** Hold out 20% of flagged members as a control group for one quarter, measure the true uplift of each action,
-   and feed the measured effects back into `config.py`.
+6. **Measure, don't assume.** Hold out 20% of flagged members as a control group, which needs about {int(ab15.total_members):,} flagged members to
+   detect a 15% uplift (section 9.5). Measure the true uplift of each action and feed it back into `config.py`.
 7. **Operationalise on the existing stack.** Run a monthly Databricks job (Data Factory ingest → Delta → `spark_features.py` → MLflow
-   champion model → CRM queue), and monitor PR-AUC, calibration and feature drift each month.
+   champion model → CRM queue). Put the Retention Console on Databricks Apps. Monitor PR-AUC, calibration and PSI drift
+   each month, and shadow-score the GRU challenger.
 
-## 10. Assumptions
+## 11. Assumptions
 
 {assumptions}
 
-## 11. Limitations
+## 12. Limitations
 
 - **One test quarter.** Results are validated on one forward quarter (with three earlier snapshots for training and validation). Seasonality
   beyond 18 months is untested.
@@ -384,7 +480,7 @@ drivers per member, is in `outputs/retention_action_list.csv`.
 - **Correlated features.** Several features are strongly correlated (transactions, spend, active months), so individual logistic
   coefficients and SHAP shares between correlated features should be read as a group, not one by one.
 
-## 12. Reproducibility and production path
+## 13. Reproducibility and production path
 
 - `python run_pipeline.py` regenerates every output, chart, the executed notebook, this report and the slide deck (about 1 minute).
 - Fixed seeds, pinned `requirements.txt`, and MLflow tracking for every model run (`outputs/mlflow_runs_summary.csv`).
@@ -393,6 +489,8 @@ drivers per member, is in `outputs/retention_action_list.csv`.
 - **Databricks / Spark:** `src/spark_features.py` is a PySpark port of the feature builder. {parity_txt}
   `notebooks/02_databricks_churn_job.py` shows the scheduled job on Azure Data Factory, Delta tables and the MLflow registry.
 - **API:** `uvicorn src.api:app` serves `/score` for real-time scoring, for example from the CRM.
+- **Dashboard:** `python app.py` (Dash). **CI:** GitHub Actions rebuilds the outputs and runs the tests on every push.
+  **Governance:** `MODEL_CARD.md` covers intended use, metrics, fairness and monitoring.
 """
 
 

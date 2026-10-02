@@ -1,0 +1,3 @@
+model,params,split,population,n,churn_rate,threshold,precision,recall,f1,pr_auc,roc_auc,accuracy,brier,lift_top10pct,pr_auc_ci_low,pr_auc_ci_high,valid_active_pr_auc,delta_vs_champion,delta_ci_low,delta_ci_high,p_gru_better
+GRU sequence (PyTorch),"hidden=32, epochs=19",test,All eligible,2368,0.3433,0.4351,0.9557,0.9545,0.9551,0.988,0.9925,0.9692,0.0255,2.9127,0.983,0.9923,0.8379,,,,
+GRU sequence (PyTorch),"hidden=32, epochs=19",test,Active only,1715,0.0956,0.4351,0.795,0.7805,0.7877,0.8249,0.9661,0.9598,0.0332,7.7822,0.7628,0.8739,0.8379,0.0309,-0.0015,0.0671,0.974
