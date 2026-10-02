@@ -1,0 +1,64 @@
+{
+  "selected_model": "Logistic regression",
+  "threshold": 0.36994196925749245,
+  "challenger": "Gradient boosting",
+  "n_test": 2368,
+  "n_active": 1715,
+  "n_lapsed": 653,
+  "churn_rate_all": 0.3433277027027027,
+  "churn_rate_active": 0.0956268221574344,
+  "churn_rate_lapsed": 0.9938744257274119,
+  "share_churners_already_lapsed": 0.7982779827798278,
+  "test_all": {
+    "n": 2368,
+    "churn_rate": 0.3433277027027027,
+    "threshold": 0.36994196925749245,
+    "precision": 0.9302884615384616,
+    "recall": 0.9520295202952029,
+    "f1": 0.941033434650456,
+    "pr_auc": 0.9855374414655728,
+    "roc_auc": 0.9912103558334618,
+    "accuracy": 0.9590371621621622,
+    "brier": 0.028789433866718235,
+    "lift_top10pct": 2.9003793835406713,
+    "pr_auc_ci_low": 0.9784065874728158,
+    "pr_auc_ci_high": 0.9901754833682064
+  },
+  "test_active": {
+    "n": 1715,
+    "churn_rate": 0.0956268221574344,
+    "threshold": 0.36994196925749245,
+    "precision": 0.6983240223463687,
+    "recall": 0.7621951219512195,
+    "f1": 0.7288629737609329,
+    "pr_auc": 0.7939984626616983,
+    "roc_auc": 0.9611737510025005,
+    "accuracy": 0.9457725947521866,
+    "brier": 0.0376092857454063,
+    "lift_top10pct": 7.538996029495179,
+    "pr_auc_ci_low": 0.7332597270199445,
+    "pr_auc_ci_high": 0.848613527976785
+  },
+  "complaint_test": {
+    "chi2": 12.37646226286237,
+    "p": 0.0004347801653769229,
+    "churn_if_complaint": 0.16751269035532995,
+    "churn_if_none": 0.0862977602108037
+  },
+  "support_whatif": {
+    "members": 383,
+    "mean_risk_before": 0.2318471576861965,
+    "mean_risk_after": 0.13782648203211523,
+    "relative_reduction": 0.40552869654471935,
+    "churners_prevented": 36.009918775513114
+  },
+  "revenue_at_risk_total": 448599.3244831305,
+  "revenue_at_risk_active": 105991.87406674465,
+  "high_risk_active": 179,
+  "nba_counts": {
+    "Monitor (no paid action)": 1819,
+    "Win-back offer": 408,
+    "Proactive service call": 82,
+    "Personalised coupon": 59
+  }
+}

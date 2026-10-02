@@ -1,0 +1,17 @@
+model,params,split,population,n,churn_rate,threshold,precision,recall,f1,pr_auc,roc_auc,accuracy,brier,lift_top10pct,pr_auc_ci_low,pr_auc_ci_high
+Recency rule,{},valid,All eligible,2167,0.3013,0.3641,0.8284,0.902,0.8636,0.9116,0.9418,0.9142,0.0529,3.3185,,
+Recency rule,{},valid,Active only,1681,0.1023,0.3641,0.48,0.6279,0.5441,0.4235,0.7833,0.8923,0.0653,4.7703,,
+Recency rule,{},test,All eligible,2368,0.3433,0.3641,0.8667,0.936,0.9001,0.9441,0.9614,0.9286,0.0433,2.9004,0.9314,0.9556
+Recency rule,{},test,Active only,1715,0.0956,0.3641,0.4978,0.6829,0.5758,0.4644,0.8135,0.9038,0.0574,5.6542,0.3882,0.5396
+Logistic regression,{'C': 0.05},valid,All eligible,2167,0.3013,0.3699,0.9207,0.925,0.9228,0.9781,0.9866,0.9534,0.0342,3.3185,,
+Logistic regression,{'C': 0.05},valid,Active only,1681,0.1023,0.3699,0.7235,0.7151,0.7193,0.7989,0.9516,0.9429,0.0415,7.0972,,
+Logistic regression,{'C': 0.05},test,All eligible,2368,0.3433,0.3699,0.9303,0.952,0.941,0.9855,0.9912,0.959,0.0288,2.9004,0.9784,0.9902
+Logistic regression,{'C': 0.05},test,Active only,1715,0.0956,0.3699,0.6983,0.7622,0.7289,0.794,0.9612,0.9458,0.0376,7.539,0.7333,0.8486
+Random forest,"{'min_samples_leaf': 5, 'max_features': 0.4}",valid,All eligible,2167,0.3013,0.271,0.899,0.9265,0.9125,0.9744,0.9834,0.9465,0.0363,3.3185,,
+Random forest,"{'min_samples_leaf': 5, 'max_features': 0.4}",valid,Active only,1681,0.1023,0.271,0.6631,0.7209,0.6908,0.7662,0.9389,0.934,0.045,6.4573,,
+Random forest,"{'min_samples_leaf': 5, 'max_features': 0.4}",test,All eligible,2368,0.3433,0.271,0.9184,0.9557,0.9367,0.9866,0.9907,0.9557,0.0295,2.9127,0.9819,0.9906
+Random forest,"{'min_samples_leaf': 5, 'max_features': 0.4}",test,Active only,1715,0.0956,0.271,0.6632,0.7805,0.7171,0.7755,0.9554,0.9411,0.0395,7.4174,0.7146,0.8318
+Gradient boosting,"{'max_depth': 2, 'min_samples_leaf': 10}",valid,All eligible,2167,0.3013,0.3498,0.9179,0.925,0.9214,0.9771,0.9857,0.9525,0.0357,3.3185,,
+Gradient boosting,"{'max_depth': 2, 'min_samples_leaf': 10}",valid,Active only,1681,0.1023,0.3498,0.7151,0.7151,0.7151,0.7913,0.9479,0.9417,0.0435,6.9809,,
+Gradient boosting,"{'max_depth': 2, 'min_samples_leaf': 10}",test,All eligible,2368,0.3433,0.3498,0.9337,0.9533,0.9434,0.9885,0.9921,0.9607,0.0275,2.9127,0.9843,0.992
+Gradient boosting,"{'max_depth': 2, 'min_samples_leaf': 10}",test,Active only,1715,0.0956,0.3498,0.7079,0.7683,0.7368,0.8066,0.9623,0.9475,0.0366,7.5998,0.7487,0.8573

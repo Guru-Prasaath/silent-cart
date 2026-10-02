@@ -1,0 +1,4 @@
+setup,pr_auc_all,pr_auc_active
+"Out-of-time test (reported), clean features",0.9885,0.8066
+"Random 5-fold CV, clean features",0.9873,0.7996
+"Random 5-fold CV, + leaky label columns",0.992,0.872

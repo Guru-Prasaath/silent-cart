@@ -1,0 +1,855 @@
+<!doctype html><html><head><meta charset='utf-8'><title>FreshBasket churn report</title><style>
+body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #0b0b0b; max-width: 900px; margin: 0 auto;
+       font-size: 10.5pt; line-height: 1.5; }
+h1 { font-size: 21pt; margin-bottom: 0; } h2 { font-size: 14.5pt; border-bottom: 1px solid #e1e0d9; padding-bottom: 3px; margin-top: 26px; }
+h3 { font-size: 12pt; } em { color: #52514e; }
+table { border-collapse: collapse; width: 100%; font-size: 8.6pt; margin: 10px 0 14px; page-break-inside: avoid; }
+th, td { border-bottom: 1px solid #e1e0d9; padding: 4px 6px; text-align: left; vertical-align: top; }
+th { background: #f6f5f2; font-weight: 600; }
+img { max-width: 100%; margin: 8px 0 12px; page-break-inside: avoid; }
+code { background: #f3f2ee; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+hr { border: none; border-top: 1px solid #e1e0d9; }
+@page { size: A4; margin: 16mm 14mm; }
+</style></head><body><h1>Silent Cart: FreshBasket Loyalty Churn Prediction &amp; Retention Strategy</h1>
+<p><em>Final report · Data Science · Prepared with the reproducible pipeline in this repository (<code>python run_pipeline.py</code>)</em></p>
+<hr />
+<h2>Executive summary</h2>
+<ul>
+<li><strong>Most of the churn being reported has already happened.</strong> Of the 2,368 churn-eligible members, 34.3% are
+  labelled churned. But <strong>80% of those "churners" had already stopped buying before April</strong>: they
+  had made no purchase for 3+ months. They need a <em>win-back</em> programme, not a prediction model.</li>
+<li><strong>The real prediction problem is among Active members</strong> (bought in Jan-Mar 2024): 1,715 members, of whom
+  9.6% churned. Here a recency rule gets a PR-AUC of only 0.46; our <strong>logistic regression</strong> reaches
+  <strong>0.79</strong> on an untouched, out-of-time test quarter. At the chosen threshold it catches <strong>76% of Active churners at
+  70% precision</strong> (base rate 9.6%). The top 10% of scores hold 7.5x the average churn rate.</li>
+<li><strong>Churn has a visible fingerprint.</strong> In the ~2 months before their last purchase, churners' transactions, app sessions and email
+  opens fall sharply while support tickets spike. Members with 3+ tickets in 6 months churn at 37%, against 4% for those
+  with none. Members whose spend fell 40%+ quarter-on-quarter churn at 37%.</li>
+<li><strong>Tier does not protect.</strong> Platinum members churn as often as Silver (34% vs
+  35%). Age, tenure and tier are not statistically related to churn among Active members.
+  Behaviour, engagement and support experience are.</li>
+<li><strong>Targeting beats blanket offers.</strong> Today's approach, the same coupon for everyone, costs $23,680 for this cohort and loses
+  $15,423 under our stated assumptions. A <strong>next-best-action playbook</strong> (personalised coupon, proactive service call or
+  win-back, chosen per member by expected value) costs $3,860 (84% less), prevents about
+  43 churners (73% of the blanket offer's saves) and returns
+  <strong>$3,559</strong>. That is a swing of about $80,161 per 10,000 eligible members per quarter.</li>
+</ul>
+<p><strong>Recommendation:</strong> split the churn KPI into <em>Lapsed</em> (win-back) and <em>At-risk Active</em> (retention). Score members monthly, route each one
+to its next best action, and prove the uplift with a 20% hold-out control group before scaling.</p>
+<hr />
+<h2>1. Business question and approach</h2>
+<p>FreshBasket sends the same retention offers to every member, which wastes money on members who were never going to leave. Management asked
+four questions: <strong>who</strong> will churn, <strong>which signals</strong> come first, whether <strong>tier, marketing engagement and support experience</strong> matter,
+and <strong>what action</strong> would reduce churn.</p>
+<p>The pipeline runs in eight steps: <strong>data quality → leakage-safe features → rolling-origin validation → four models compared →
+calibration and threshold tuning → SHAP drivers and segments → ablation → retention economics</strong>. It is a reproducible Python package
+(<code>src/</code>) with one entry point (<code>run_pipeline.py</code>), MLflow experiment tracking, unit tests (including an automated leakage test), a
+FastAPI scoring endpoint and a PySpark port of the feature pipeline for Databricks.</p>
+<h2>2. Data quality: what was wrong and how it was handled</h2>
+<p>The workbook has three tables: 2,600 members, 28k member-months, Jan-2023 to Jun-2024. Every sheet carries a title banner, so the
+real header is on row 2. Reading with defaults silently yields <code>Unnamed</code> columns. All 28 checks are logged in
+<code>outputs/data_quality_log.csv</code>. The issues found:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Issue</th>
+<th>Rows</th>
+<th>Handling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>profile</td>
+<td>Exact duplicate rows</td>
+<td>8</td>
+<td>Dropped</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>CITY: inconsistent casing / whitespace</td>
+<td>104</td>
+<td>Stripped and title-cased (40 raw -&gt; 10 clean values)</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>MEMBERSHIP_TIER: inconsistent casing / whitespace</td>
+<td>104</td>
+<td>Stripped and title-cased (12 raw -&gt; 3 clean values)</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>AGE missing</td>
+<td>78</td>
+<td>Kept as missing; median-imputed at feature time + AGE_MISSING flag</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>GENDER missing</td>
+<td>52</td>
+<td>Filled with explicit 'Unknown' category</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>HOME_STORE_PRICE_TIER missing</td>
+<td>130</td>
+<td>Filled with explicit 'Unknown' category</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Exact duplicate rows</td>
+<td>58</td>
+<td>Dropped</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Conflicting duplicates (same customer-month, spend sign flipped)</td>
+<td>4</td>
+<td>Kept the row with positive spend</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Negative TOTAL_SPEND with transactions &gt; 0</td>
+<td>22</td>
+<td>Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Zero TOTAL_SPEND with transactions &gt; 0</td>
+<td>20</td>
+<td>Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Outlier TOTAL_SPEND (&gt; 3x transactions x basket)</td>
+<td>13</td>
+<td>Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE (max was $3,731)</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Remaining high spend after repair (&gt; Q3 + 3 IQR)</td>
+<td>60</td>
+<td>Kept: consistent with transactions x basket, so genuine big shoppers</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Zero-transaction months (engagement but no purchase)</td>
+<td>2,330</td>
+<td>Kept: valid inactivity signal; spend/basket/promo already 0</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Zero-transaction months reporting DISTINCT_CATEGORIES &gt; 0</td>
+<td>1,452</td>
+<td>Set DISTINCT_CATEGORIES to 0 (cannot buy categories without a transaction)</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Zero-transaction months reporting COUPONS_REDEEMED &gt; 0</td>
+<td>653</td>
+<td>Set COUPONS_REDEEMED to 0 (a redemption requires a transaction)</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Missing months inside a member's active span (769 members)</td>
+<td>953</td>
+<td>Not imputed as zero: treated as missing data; MISSING_MONTHS_6M feature added</td>
+</tr>
+<tr>
+<td>activity</td>
+<td>Profiled members with no activity rows at all</td>
+<td>6</td>
+<td>Cannot be scored; excluded from modelling</td>
+</tr>
+<tr>
+<td>label</td>
+<td>Exact duplicate rows</td>
+<td>5</td>
+<td>Dropped</td>
+</tr>
+<tr>
+<td>label</td>
+<td>LAST_PURCHASE_DATE missing (member never purchased)</td>
+<td>120</td>
+<td>Not churn-eligible by definition; excluded from modelling</td>
+</tr>
+<tr>
+<td>label</td>
+<td>CHURNED disagrees with label re-derived from activity (99.7% agree)</td>
+<td>9</td>
+<td>Official label kept; mismatches trace to missing activity rows</td>
+</tr>
+<tr>
+<td>label</td>
+<td>CHURNED=1 but no pre-April purchase visible in activity</td>
+<td>5</td>
+<td>Excluded (no history to build features from)</td>
+</tr>
+<tr>
+<td>label</td>
+<td>Leaky columns: LAST_PURCHASE_DATE, MONTHS_OBSERVED, INSUFFICIENT_HISTORY_FLAG</td>
+<td>3</td>
+<td>Computed with Apr-Jun 2024 data; never used as features. Rebuilt from pre-cutoff data instead</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Spend repair" src="../outputs/figures/01_dq_spend_repair.png" /></p>
+<p><strong>Leakage audit.</strong> Three label-table columns, <code>LAST_PURCHASE_DATE</code>, <code>MONTHS_OBSERVED</code> and <code>INSUFFICIENT_HISTORY_FLAG</code>, are
+calculated over the full window <em>including</em> Apr-Jun 2024. Churners stop generating rows, so these columns partly encode the answer. They are
+never used. Leakage-safe equivalents (<code>recency_months</code>, <code>history_months</code>, <code>short_history</code>) are rebuilt from pre-cut-off data. Section 5 shows
+that including the leaky columns would inflate Active-member PR-AUC from 0.80 to 0.87.</p>
+<h2>3. What churn really looks like</h2>
+<h3>3.1 A leaky bucket hidden by sign-ups</h3>
+<p>Every month roughly 55 members make their final purchase, while new sign-ups keep headline member counts rising. The loss is invisible
+in the totals.</p>
+<p><img alt="Leaky bucket" src="../outputs/figures/02_leaky_bucket.png" /></p>
+<h3>3.2 Two churn problems inside one label</h3>
+<p>Churn probability is a cliff in recency. Members who last bought 1 month before April churn at 3%; 2 months, 38%; 3 months,
+81%; 4+ months, about 100%. The label combines members who left months ago with members who are about to leave.</p>
+<p><img alt="Two churns" src="../outputs/figures/03_recency_cliff_two_churns.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Segment</th>
+<th>Members</th>
+<th>Churn rate</th>
+<th>Share of churners</th>
+<th>What it needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lapsed (no purchase Jan-Mar 2024)</td>
+<td>653</td>
+<td>99.4%</td>
+<td>80%</td>
+<td>Win-back campaign; a rule identifies them</td>
+</tr>
+<tr>
+<td>Active (purchased Jan-Mar 2024)</td>
+<td>1,715</td>
+<td>9.6%</td>
+<td>20%</td>
+<td>Early warning model + retention action</td>
+</tr>
+</tbody>
+</table>
+<h3>3.3 The churn fingerprint</h3>
+<p>Lining up Active members on their last pre-April purchase shows <em>how</em> churn unfolds. Purchases, app sessions and email opens fade over the
+final ~2 months while support tickets spike. Those ~2 months are the intervention window.</p>
+<p><img alt="Churn fingerprint" src="../outputs/figures/04_churn_fingerprint.png" /></p>
+<h2>4. Engagement and support experience vs churn</h2>
+<p><img alt="Engagement and support" src="../outputs/figures/05_engagement_support_vs_churn.png" /></p>
+<p>Statistical evidence for Active members: Mann-Whitney U tests, Benjamini-Hochberg corrected. Rank-biserial r &gt; 0 means churners score higher.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Feature</th>
+<th>Mean (churned)</th>
+<th>Mean (retained)</th>
+<th>Effect size (r)</th>
+<th>q (BH)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Behavioural</td>
+<td>txn_l3</td>
+<td>1.35</td>
+<td>4.60</td>
+<td>-0.84</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Engagement</td>
+<td>app_l3</td>
+<td>0.58</td>
+<td>2.27</td>
+<td>-0.75</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Behavioural</td>
+<td>categories_l3</td>
+<td>1.11</td>
+<td>2.57</td>
+<td>-0.66</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Behavioural</td>
+<td>txn_change_pct</td>
+<td>-0.41</td>
+<td>0.11</td>
+<td>-0.63</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Behavioural</td>
+<td>recency_months</td>
+<td>1.99</td>
+<td>1.08</td>
+<td>+0.63</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Behavioural</td>
+<td>spend_change_pct</td>
+<td>-0.36</td>
+<td>0.12</td>
+<td>-0.62</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Behavioural</td>
+<td>active_months_l3</td>
+<td>1.77</td>
+<td>2.66</td>
+<td>-0.59</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Engagement</td>
+<td>coupons_l3</td>
+<td>0.18</td>
+<td>0.59</td>
+<td>-0.55</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Engagement</td>
+<td>app_change_pct</td>
+<td>-0.40</td>
+<td>0.16</td>
+<td>-0.51</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Engagement</td>
+<td>email_l3</td>
+<td>0.43</td>
+<td>1.09</td>
+<td>-0.49</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Support</td>
+<td>tickets_6m</td>
+<td>1.49</td>
+<td>0.63</td>
+<td>+0.43</td>
+<td>&lt;0.001</td>
+</tr>
+<tr>
+<td>Support</td>
+<td>tickets_l3</td>
+<td>1.02</td>
+<td>0.33</td>
+<td>+0.40</td>
+<td>&lt;0.001</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Engagement:</strong> churners opened 0.4 emails/month vs 1.1, and used the app
+  0.6 vs 2.3 sessions/month (r = -0.75).
+  Members with fewer than 0.5 app sessions/month churn at 46%.</li>
+<li><strong>Support:</strong> churners raised 1.5 tickets in 6 months vs 0.6. A formal
+  complaint in the last quarter roughly doubles churn (17% vs
+  9%; chi-square p = 0.0004).</li>
+<li><strong>Not significant:</strong> tier, age and tenure (q &gt; 0.6). Marketing opt-in is borderline (q = 0.06).</li>
+</ul>
+<h2>5. Modelling and validation</h2>
+<p><strong>Validation design (no random split).</strong> The churn definition can be replayed at any cut-off, so we built forward-chaining snapshots:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Cut-off</th>
+<th>Label window</th>
+<th>Members</th>
+<th>Churn</th>
+<th>Active churn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Train</td>
+<td>Jul-2023, Oct-2023</td>
+<td>Jul-Sep, Oct-Dec 2023</td>
+<td>3,767 rows</td>
+<td>21.5%</td>
+<td>10.2%</td>
+</tr>
+<tr>
+<td>Validation (model choice, calibration, threshold)</td>
+<td>Jan-2024</td>
+<td>Jan-Mar 2024</td>
+<td>2,167</td>
+<td>30.1%</td>
+<td>10.2%</td>
+</tr>
+<tr>
+<td><strong>Test (reported once)</strong></td>
+<td>Apr-2024</td>
+<td><strong>Apr-Jun 2024, official label</strong></td>
+<td>2,368</td>
+<td>34.3%</td>
+<td>9.6%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Models compared:</strong>
+- (a) a <strong>recency rule</strong> (rule-based baseline: churn rate by months since last purchase);
+- (b) <strong>logistic regression</strong> with class weights;
+- (c) <strong>random forest</strong> with balanced class weights;
+- (d) <strong>gradient boosting</strong> with balanced sample weights.</p>
+<p>Hyper-parameters were chosen on validation <strong>Active-member PR-AUC</strong>, since that is where prediction is hard. Re-weighted scores were then
+Platt-calibrated on validation, so outputs are real probabilities. The threshold maximises validation Active-member F1.</p>
+<p><strong>Results on the untouched Apr-Jun 2024 test quarter:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Population</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1</th>
+<th>PR-AUC (95% CI)</th>
+<th>ROC-AUC</th>
+<th>Accuracy</th>
+<th>Lift @ top 10%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recency rule</td>
+<td>All eligible</td>
+<td>0.867</td>
+<td>0.936</td>
+<td>0.900</td>
+<td>0.944 (0.93-0.96)</td>
+<td>0.961</td>
+<td>0.929</td>
+<td>2.9x</td>
+</tr>
+<tr>
+<td>Recency rule</td>
+<td>Active only</td>
+<td>0.498</td>
+<td>0.683</td>
+<td>0.576</td>
+<td>0.464 (0.39-0.54)</td>
+<td>0.814</td>
+<td>0.904</td>
+<td>5.7x</td>
+</tr>
+<tr>
+<td>Logistic regression</td>
+<td>All eligible</td>
+<td>0.930</td>
+<td>0.952</td>
+<td>0.941</td>
+<td>0.986 (0.98-0.99)</td>
+<td>0.991</td>
+<td>0.959</td>
+<td>2.9x</td>
+</tr>
+<tr>
+<td>Logistic regression</td>
+<td>Active only</td>
+<td>0.698</td>
+<td>0.762</td>
+<td>0.729</td>
+<td>0.794 (0.73-0.85)</td>
+<td>0.961</td>
+<td>0.946</td>
+<td>7.5x</td>
+</tr>
+<tr>
+<td>Random forest</td>
+<td>All eligible</td>
+<td>0.918</td>
+<td>0.956</td>
+<td>0.937</td>
+<td>0.987 (0.98-0.99)</td>
+<td>0.991</td>
+<td>0.956</td>
+<td>2.9x</td>
+</tr>
+<tr>
+<td>Random forest</td>
+<td>Active only</td>
+<td>0.663</td>
+<td>0.780</td>
+<td>0.717</td>
+<td>0.775 (0.71-0.83)</td>
+<td>0.955</td>
+<td>0.941</td>
+<td>7.4x</td>
+</tr>
+<tr>
+<td>Gradient boosting</td>
+<td>All eligible</td>
+<td>0.934</td>
+<td>0.953</td>
+<td>0.943</td>
+<td>0.989 (0.98-0.99)</td>
+<td>0.992</td>
+<td>0.961</td>
+<td>2.9x</td>
+</tr>
+<tr>
+<td>Gradient boosting</td>
+<td>Active only</td>
+<td>0.708</td>
+<td>0.768</td>
+<td>0.737</td>
+<td>0.807 (0.75-0.86)</td>
+<td>0.962</td>
+<td>0.948</td>
+<td>7.6x</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="PR curves" src="../outputs/figures/07_pr_curves.png" /></p>
+<ul>
+<li>On <em>all</em> members every model scores above 0.94 PR-AUC, because lapsed members are trivially predictable. <strong>The Active panel is the real test:</strong>
+  machine-learning models roughly double the recency rule's PR-AUC (0.46 to about 0.8).</li>
+<li><strong>Logistic regression was selected on validation.</strong> Gradient boosting scores slightly higher on test (0.807 vs 0.794), but the
+  bootstrap intervals overlap almost entirely: the models are statistically tied. The transparent, cheaper model is deployed, and
+  gradient boosting is kept as a challenger and SHAP cross-check.</li>
+</ul>
+<p><img alt="Confusion matrix" src="../outputs/figures/08_confusion_matrix.png" />
+<img alt="Calibration" src="../outputs/figures/09_calibration.png" /></p>
+<p><strong>Validation-design checks</strong> (5-fold random CV on the test cohort, shown only for comparison):</p>
+<table>
+<thead>
+<tr>
+<th>Set-up</th>
+<th>PR-AUC all</th>
+<th>PR-AUC Active</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Out-of-time test (reported), clean features</td>
+<td>0.989</td>
+<td>0.807</td>
+</tr>
+<tr>
+<td>Random 5-fold CV, clean features</td>
+<td>0.987</td>
+<td>0.800</td>
+</tr>
+<tr>
+<td>Random 5-fold CV, + leaky label columns</td>
+<td>0.992</td>
+<td>0.872</td>
+</tr>
+</tbody>
+</table>
+<p>Random CV scores close to the out-of-time result on this dataset, so behaviour is stable over time. The leaky label columns,
+however, would have inflated Active-member PR-AUC by about 0.07.</p>
+<h2>6. Churn drivers (SHAP) and segment risk</h2>
+<p><img alt="SHAP summary" src="../outputs/figures/11_shap_summary_active.png" />
+<img alt="SHAP by group" src="../outputs/figures/12_shap_by_feature_group.png" /></p>
+<p>The strongest drivers for Active members are emails opened / month (last 3m), transactions / month (last 3m), transactions last month, 6-month transaction trend, spend / month (last 3m), app sessions / month (last 3m). Behaviour and engagement account for 73% of attribution in the
+logistic regression and 86% in gradient boosting. Support is the next layer; demographics add little. In the logistic model, <em>marketing opt-in</em> raises risk once email opens are
+accounted for: members who opted in but stopped opening emails are disengaging. This is a conditional effect, not a reason to avoid
+opt-ins.</p>
+<p>Every member gets three plain-English, risk-increasing drivers in <code>outputs/churn_predictions.csv</code>. Examples from the high-risk Active
+list:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Churn probability</th>
+<th>Top 3 drivers (SHAP)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>502373</td>
+<td>100%</td>
+<td>4 support tickets in last 3m; Transactions trending down (-1.8/month); 1.0 transactions/month (last 3m)</td>
+</tr>
+<tr>
+<td>501335</td>
+<td>100%</td>
+<td>3 support tickets in last 3m; Transactions trending down (-1.5/month); 0.5 transactions/month (last 3m)</td>
+</tr>
+<tr>
+<td>501338</td>
+<td>99%</td>
+<td>3 support tickets in last 3m; Transactions trending down (-1.3/month); 0.3 transactions/month (last 3m)</td>
+</tr>
+<tr>
+<td>500989</td>
+<td>99%</td>
+<td>4 support tickets in last 3m; 1.0 transactions/month (last 3m); Transactions trending down (-0.9/month)</td>
+</tr>
+<tr>
+<td>501056</td>
+<td>99%</td>
+<td>0.7 transactions/month (last 3m); No marketing emails opened in last 3m; Transactions trending down (-0.9/month)</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Segment risk" src="../outputs/figures/13_segment_risk_active.png" /></p>
+<p><strong>Segments.</strong> Among Active members, predicted risk ranges from 8%
+(Nashville) to 14% (Austin). Austin and Columbus are the highest-risk cities.
+Platinum members score slightly lower predicted risk, yet <em>observed</em> churn is flat across tiers. Members who joined in 2024 churn least (honeymoon period).
+Segment differences are much smaller than behavioural ones, so segments should guide <em>logistics</em> (which store team, which channel),
+not who is targeted.</p>
+<h2>7. Ablation: do behaviour, engagement and support add value over demographics?</h2>
+<p>Each step adds a feature group cumulatively (gradient boosting, test quarter):</p>
+<table>
+<thead>
+<tr>
+<th>Feature set</th>
+<th>Features</th>
+<th>PR-AUC all</th>
+<th>PR-AUC Active</th>
+<th>ROC-AUC Active</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Demographics only</td>
+<td>9</td>
+<td>0.484</td>
+<td>0.107</td>
+<td>0.521</td>
+</tr>
+<tr>
+<td>+ Behavioural</td>
+<td>24</td>
+<td>0.978</td>
+<td>0.660</td>
+<td>0.934</td>
+</tr>
+<tr>
+<td>+ Engagement</td>
+<td>33</td>
+<td>0.986</td>
+<td>0.774</td>
+<td>0.957</td>
+</tr>
+<tr>
+<td>+ Support</td>
+<td>39</td>
+<td>0.988</td>
+<td>0.798</td>
+<td>0.962</td>
+</tr>
+<tr>
+<td>All features</td>
+<td>42</td>
+<td>0.989</td>
+<td>0.807</td>
+<td>0.962</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Ablation" src="../outputs/figures/10_ablation.png" /></p>
+<ul>
+<li><strong>Demographics alone are no better than chance</strong> for Active members (PR-AUC 0.11 vs a 9.6% base rate).</li>
+<li><strong>Behavioural</strong> features carry most of the signal.</li>
+<li><strong>Engagement</strong> adds +0.11 PR-AUC.</li>
+<li><strong>Support</strong> adds +0.02.</li>
+<li><strong>Without recency</strong> the final model still reaches 0.80, so the early-warning signal is
+  not just "hasn't bought lately".</li>
+</ul>
+<h2>8. Retention scenarios</h2>
+<p>Expected churners prevented = churn probability x relative uplift. Net value = margin retained − cost. All assumptions are listed in
+Section 10, and the uplifts are deliberately varied in the sensitivity chart.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Members</th>
+<th>Churners prevented</th>
+<th>Cost</th>
+<th>Margin retained</th>
+<th>Net value</th>
+<th>ROI</th>
+<th>Break-even uplift</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Blanket coupon (status quo)</td>
+<td>2368</td>
+<td>58.7</td>
+<td>$23,680</td>
+<td>$8,257</td>
+<td>−$15,423</td>
+<td>-65%</td>
+<td>21%</td>
+</tr>
+<tr>
+<td>B. Targeted coupon</td>
+<td>179</td>
+<td>20.4</td>
+<td>$1,790</td>
+<td>$2,983</td>
+<td>$1,193</td>
+<td>+67%</td>
+<td>9%</td>
+</tr>
+<tr>
+<td>C1. Support outreach, rule-based</td>
+<td>383</td>
+<td>22.2</td>
+<td>$5,745</td>
+<td>$3,398</td>
+<td>−$2,347</td>
+<td>-41%</td>
+<td>42%</td>
+</tr>
+<tr>
+<td>C2. Support outreach, model-targeted</td>
+<td>94</td>
+<td>18.8</td>
+<td>$1,410</td>
+<td>$2,858</td>
+<td>$1,448</td>
+<td>+103%</td>
+<td>12%</td>
+</tr>
+<tr>
+<td>D. Win-back for lapsed</td>
+<td>653</td>
+<td>32.0</td>
+<td>$3,265</td>
+<td>$4,283</td>
+<td>$1,018</td>
+<td>+31%</td>
+<td>4%</td>
+</tr>
+<tr>
+<td>E. Next-best-action playbook</td>
+<td>549</td>
+<td>43.0</td>
+<td>$3,860</td>
+<td>$7,419</td>
+<td>$3,559</td>
+<td>+92%</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Scenarios" src="../outputs/figures/14_retention_scenarios.png" />
+<img alt="Sensitivity" src="../outputs/figures/15_scenario_sensitivity.png" /></p>
+<ul>
+<li><strong>Blanket coupon (status quo)</strong> never breaks even. Most of the money goes to members who were staying anyway, or who have already left.</li>
+<li><strong>Support outreach</strong>, as the brief suggested, loses money if every member with tickets is called (−$2,347). The same calls
+  <strong>restricted to model-flagged members</strong> return $1,448 (ROI +103%) and reach 85%
+  of the saves with a quarter of the calls.</li>
+<li><strong>A model-based what-if supports this.</strong> Re-scoring the 383 support-issue members with their tickets
+  "resolved" lowers mean risk from 23% to 14%
+  (41% relative). This is associational, so treat it as an upper bound; our planning assumption is 25%.</li>
+<li><strong>The targeted coupon</strong> breaks even at a 9% uplift, against 21% for the blanket coupon.</li>
+<li><strong>Next-best-action playbook (recommended):</strong> each member receives at most one action, and only when its expected value is positive:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Recommended action</th>
+<th>Members</th>
+<th>Expected net value</th>
+<th>6-month revenue at risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Monitor (no paid action)</td>
+<td>1819</td>
+<td>$0</td>
+<td>$92,889</td>
+</tr>
+<tr>
+<td>Personalised coupon</td>
+<td>59</td>
+<td>$562</td>
+<td>$30,709</td>
+</tr>
+<tr>
+<td>Proactive service call</td>
+<td>82</td>
+<td>$1,527</td>
+<td>$44,106</td>
+</tr>
+<tr>
+<td>Win-back offer</td>
+<td>408</td>
+<td>$1,540</td>
+<td>$280,895</td>
+</tr>
+</tbody>
+</table>
+<p>The playbook lowers expected churn among Active members from 10.4% to 9.1% next quarter
+and recovers about 32 lapsed members, for a net $3,559 on this cohort. The full ranked list, with action, value at risk and
+drivers per member, is in <code>outputs/retention_action_list.csv</code>.</p>
+<h2>9. Recommendations</h2>
+<ol>
+<li><strong>Redefine the churn KPI.</strong> Report <em>Lapsed</em> (no purchase 3+ months: win-back) separately from <em>At-risk Active</em>. Add a <strong>60-day
+   no-purchase trigger</strong>: churn jumps from 3% to 38% after one missed month, and to 81% after two.</li>
+<li><strong>Replace blanket coupons with monthly next-best-action targeting.</strong> Each month, score all members, then send:</li>
+<li><strong>service calls</strong> to high-risk members with support issues;</li>
+<li><strong>preferred-category coupons</strong> to other high-risk Active members;</li>
+<li><strong>win-back offers</strong> to high-value lapsed members.</li>
+</ol>
+<p>The expected result is about 84% lower spend, with a profit instead of a loss.
+3. <strong>Make service recovery a retention lever.</strong> Members with 2+ tickets churn at 19-37%. Close the loop on tickets within the 2-month
+   fingerprint window, with priority for members the model flags.
+4. <strong>Automate free nudges before paid offers.</strong> A 40%+ spend drop or app use below 0.5 sessions/month should trigger app push and
+   personalised content first.
+5. <strong>Revisit tier benefits.</strong> Platinum perks are not buying loyalty. Test engagement-based rewards (app streaks, category missions) instead of
+   spend-only tiers.
+6. <strong>Measure, don't assume.</strong> Hold out 20% of flagged members as a control group for one quarter, measure the true uplift of each action,
+   and feed the measured effects back into <code>config.py</code>.
+7. <strong>Operationalise on the existing stack.</strong> Run a monthly Databricks job (Data Factory ingest → Delta → <code>spark_features.py</code> → MLflow
+   champion model → CRM queue), and monitor PR-AUC, calibration and feature drift each month.</p>
+<h2>10. Assumptions</h2>
+<ol>
+<li><strong>Target.</strong> CHURNED = no transactions in Apr-Jun 2024 for a member who purchased before April (official label, used as-is). Members who never purchased (120 in the label table), the 6 profiled members with no activity, and 5 labelled churners with no pre-April activity cannot be scored from history and are excluded, leaving 2,368 eligible members.</li>
+<li><strong>Missing months.</strong> A month with no row <em>between</em> a member's first and last rows is lost data, not inactivity (the label table's MONTHS_OBSERVED counts these months as observed). Months <em>after</em> a member's last row are treated as zero activity, which is what a live system would see at scoring time.</li>
+<li><strong>Spend repair.</strong> TOTAL_SPEND = TRANSACTIONS x AVG_BASKET_VALUE holds for 99.8% of rows, so negative, zero and 9-15x inflated spend values are rebuilt from that identity rather than dropped.</li>
+<li><strong>Impossible zero-transaction values.</strong> Categories bought and coupons redeemed in months with zero transactions are set to 0.</li>
+<li><strong>Historical labels.</strong> Snapshots at Jul-23, Oct-23 and Jan-24 reuse the official definition (no purchase in the next 3 months). Applied at Apr-24 this rebuilt label agrees with the official one for 99.8% of members.</li>
+<li><strong>Feature window.</strong> All behavioural features use the 6 months before each cut-off, so snapshots are comparable. Recency is capped at 7 months ("6+").</li>
+<li><strong>Categoricals.</strong> City and tier variants are standardised by trimming and title-casing (40 to 10 cities, 12 to 3 tiers). Missing gender and price tier become an explicit 'Unknown'. Missing age is filled with the median of the training snapshots, plus a missing flag.</li>
+<li><strong>Decision threshold.</strong> 0.37 maximises F1 for Active members of the validation snapshot. High risk means p at or above the threshold; Medium means p of 10% or more.</li>
+<li><strong>Economics (not measured, varied in sensitivity analysis).</strong> Value of a retained member = 6 months of their typical monthly spend x 25% gross margin. Coupon: $10 cost, cuts churn probability by 15% (relative). Service call: $15, cuts it by 25%. Win-back: $5, reactivates 5%. Any offer to a Lapsed member is assumed to work only as well as a win-back.</li>
+<li><strong>Repeated members.</strong> The same member can appear in up to two training snapshots, so training rows are not fully independent. This is standard for rolling-origin designs, and the test cohort is strictly later in time.</li>
+</ol>
+<h2>11. Limitations</h2>
+<ul>
+<li><strong>One test quarter.</strong> Results are validated on one forward quarter (with three earlier snapshots for training and validation). Seasonality
+  beyond 18 months is untested.</li>
+<li><strong>Small sample.</strong> There are only 164 Active churners in the test cohort, so the 95% interval on Active PR-AUC is ±0.06. More history would
+  tighten it.</li>
+<li><strong>Uplifts are assumptions, not measurements.</strong> The scenario values depend on them, which is why break-even points and sensitivity are
+  reported and a controlled test is recommended.</li>
+<li><strong>SHAP is not causal.</strong> SHAP values and the support what-if describe associations. A member with many tickets may churn because of an
+  underlying problem (a store move, a bad experience) that a phone call cannot fix.</li>
+<li><strong>Limited data.</strong> There is no transaction-level, product, price, competitor or exit-reason data. Why members leave is inferred from
+  behaviour, not observed.</li>
+<li><strong>Missing months.</strong> The 953 missing months are treated as lost data. If some were genuine inactivity, a few trend features are slightly
+  optimistic for those members.</li>
+<li><strong>Correlated features.</strong> Several features are strongly correlated (transactions, spend, active months), so individual logistic
+  coefficients and SHAP shares between correlated features should be read as a group, not one by one.</li>
+</ul>
+<h2>12. Reproducibility and production path</h2>
+<ul>
+<li><code>python run_pipeline.py</code> regenerates every output, chart, the executed notebook, this report and the slide deck (about 1 minute).</li>
+<li>Fixed seeds, pinned <code>requirements.txt</code>, and MLflow tracking for every model run (<code>outputs/mlflow_runs_summary.csv</code>).</li>
+<li><code>python -m pytest</code>: unit tests, including an <strong>automated leakage test</strong> that corrupts all post-cut-off data and asserts the features
+  do not change.</li>
+<li><strong>Databricks / Spark:</strong> <code>src/spark_features.py</code> is a PySpark port of the feature builder. Verified: identical outputs for 8,302 member-snapshots across 4 cut-offs (31 feature columns, zero mismatches).
+  <code>notebooks/02_databricks_churn_job.py</code> shows the scheduled job on Azure Data Factory, Delta tables and the MLflow registry.</li>
+<li><strong>API:</strong> <code>uvicorn src.api:app</code> serves <code>/score</code> for real-time scoring, for example from the CRM.</li>
+</ul></body></html>

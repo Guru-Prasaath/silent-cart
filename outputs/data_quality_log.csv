@@ -1,0 +1,29 @@
+table,check,rows_found,action,rows_changed
+profile,Exact duplicate rows,8,Dropped,8
+profile,CITY: inconsistent casing / whitespace,104,Stripped and title-cased (40 raw -> 10 clean values),104
+profile,MEMBERSHIP_TIER: inconsistent casing / whitespace,104,Stripped and title-cased (12 raw -> 3 clean values),104
+profile,AGE missing,78,Kept as missing; median-imputed at feature time + AGE_MISSING flag,0
+profile,AGE outside 16-100,0,None needed,0
+profile,GENDER missing,52,Filled with explicit 'Unknown' category,52
+profile,HOME_STORE_PRICE_TIER missing,130,Filled with explicit 'Unknown' category,130
+profile,Signup date after data window,0,None needed,0
+activity,Exact duplicate rows,58,Dropped,58
+activity,"Conflicting duplicates (same customer-month, spend sign flipped)",4,Kept the row with positive spend,2
+activity,Month outside Jan-2023..Jun-2024,0,None needed,0
+activity,Activity for customers missing from profile,0,None needed,0
+activity,Negative TOTAL_SPEND with transactions > 0,22,Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE,22
+activity,Zero TOTAL_SPEND with transactions > 0,20,Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE,20
+activity,Outlier TOTAL_SPEND (> 3x transactions x basket),13,"Rebuilt as TRANSACTIONS x AVG_BASKET_VALUE (max was $3,731)",13
+activity,Remaining high spend after repair (> Q3 + 3 IQR),60,"Kept: consistent with transactions x basket, so genuine big shoppers",0
+activity,Zero-transaction months (engagement but no purchase),2330,Kept: valid inactivity signal; spend/basket/promo already 0,0
+activity,Zero-transaction months reporting DISTINCT_CATEGORIES > 0,1452,Set DISTINCT_CATEGORIES to 0 (cannot buy categories without a transaction),1452
+activity,Zero-transaction months reporting COUPONS_REDEEMED > 0,653,Set COUPONS_REDEEMED to 0 (a redemption requires a transaction),653
+activity,Complaint flag without a support ticket,0,None needed,0
+activity,PROMO_TXN_PCT outside 0-1,0,None needed,0
+activity,Missing months inside a member's active span (769 members),953,Not imputed as zero: treated as missing data; MISSING_MONTHS_6M feature added,0
+activity,Profiled members with no activity rows at all,6,Cannot be scored; excluded from modelling,0
+label,Exact duplicate rows,5,Dropped,5
+label,LAST_PURCHASE_DATE missing (member never purchased),120,Not churn-eligible by definition; excluded from modelling,0
+label,CHURNED disagrees with label re-derived from activity (99.7% agree),9,Official label kept; mismatches trace to missing activity rows,0
+label,CHURNED=1 but no pre-April purchase visible in activity,5,Excluded (no history to build features from),0
+label,"Leaky columns: LAST_PURCHASE_DATE, MONTHS_OBSERVED, INSUFFICIENT_HISTORY_FLAG",3,Computed with Apr-Jun 2024 data; never used as features. Rebuilt from pre-cutoff data instead,0

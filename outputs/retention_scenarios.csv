@@ -1,0 +1,7 @@
+scenario,description,members_targeted,expected_churners_in_target,share_of_all_expected_churners,churners_prevented,churn_rate_before,churn_rate_after,active_churn_before,active_churn_after,cost,margin_retained,net_value,roi,break_even_uplift,assumed_relative_uplift,cost_per_member
+A. Blanket coupon (status quo),Coupon to every eligible member,2368,817.5977,1.0,58.7178,0.3453,0.3205,0.104,0.0884,23680.0,8257.2884,-15422.7116,-0.6513,0.2111,0.15,10.0
+B. Targeted coupon,Coupon only to Active members the model flags,179,135.7782,0.1661,20.3667,0.3453,0.3367,0.104,0.0921,1790.0,2983.4236,1193.4236,0.6667,0.09,0.15,10.0
+"C1. Support outreach, rule-based",Service call to every Active member with 2+ tickets or a recent complaint,383,88.7975,0.1086,22.1994,0.3453,0.3359,0.104,0.0911,5745.0,3397.527,-2347.473,-0.4086,0.4227,0.25,15.0
+"C2. Support outreach, model-targeted",Service call only to support-issue members the model also flags,94,75.3379,0.0921,18.8345,0.3453,0.3373,0.104,0.093,1410.0,2857.522,1447.522,1.0266,0.1234,0.25,15.0
+D. Win-back for lapsed,Reactivation offer to members silent 3+ months,653,639.219,0.7818,31.961,0.3453,0.3318,0.104,0.104,3265.0,4282.5931,1017.5931,0.3117,0.0381,0.05,5.0
+E. Next-best-action playbook,Each member gets the single action with positive expected value (coupon / service call / win-back),549,508.9964,0.6226,43.0307,0.3453,0.3271,0.104,0.0906,3860.0,7419.3879,3559.3879,0.9221,,,

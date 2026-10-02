@@ -1,0 +1,11 @@
+variant,step,n_features,pr_auc_all,roc_auc_all,pr_auc_active,roc_auc_active
+With recency,Demographics only,9,0.4843,0.6545,0.1075,0.5207
+With recency,+ Behavioural,24,0.9777,0.9855,0.6598,0.9343
+With recency,+ Engagement,33,0.9862,0.9908,0.7742,0.9568
+With recency,+ Support,39,0.9883,0.9921,0.7981,0.9622
+With recency,All features,42,0.9885,0.9921,0.8066,0.9623
+Without recency features,Demographics only,9,0.4843,0.6545,0.1075,0.5207
+Without recency features,+ Behavioural,21,0.9775,0.9848,0.6432,0.9291
+Without recency features,+ Engagement,30,0.9856,0.9902,0.7677,0.9538
+Without recency features,+ Support,36,0.9875,0.9916,0.7957,0.9611
+Without recency features,All features,39,0.9881,0.9916,0.7995,0.9598
