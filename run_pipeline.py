@@ -92,7 +92,7 @@ def main(args):
         actual_churned=test.churned, segment=test.segment)
     preds.round({"churn_probability": 4}).sort_values("churn_probability", ascending=False).to_csv(
         C.OUTPUTS / "churn_predictions.csv", index=False)
-    band = np.select([test.churn_probability >= cm.threshold, test.churn_probability >= 0.10], ["High", "Medium"], "Low")
+    band = np.select([test.churn_probability >= cm.threshold, test.churn_probability >= C.MEDIUM_RISK], ["High", "Medium"], "Low")
     persona_of, prof = personas.fit_personas(test)
     personas.fig_personas(prof)
     nba = nba.merge(persona_of, on="customer_id", how="left").fillna({"persona": "Lapsed"})
@@ -122,11 +122,11 @@ def main(args):
     print(checks.round(3).to_string(index=False))
 
     step("8/10 Advanced analytics: survival, drift, fairness, deep-learning challenger, next-quarter forecast")
-    surv_tbl, surv, curves = survival.run(activity, profile)
+    _, surv, curves = survival.run(activity, profile)
     survival.fig_survival(surv, curves)
     drift = monitoring.drift_report(train, valid, test)
     monitoring.fig_drift(drift)
-    fair = monitoring.fairness_report(test)
+    monitoring.fairness_report(test)
     gru = deep.run(activity, train, valid, test, champion_proba=test.churn_probability.to_numpy())
     watch, nq = forecast.next_quarter(profile, activity, cm, train)
     if gru is not None:

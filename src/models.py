@@ -26,9 +26,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.class_weight import compute_sample_weight
 
-from .config import CHURN_COLOR, COLORS, OUTPUTS, ROOT, SEED
+from .config import COLORS, OUTPUTS, ROOT, SEED
 from .features import ALL_FEATURES, CATEGORICAL, FEATURE_GROUPS
-from .viz import apply_style, fig_titled, save, titled
+from .viz import apply_style, fig_titled, save
 
 apply_style()
 MODEL_COLORS = {"Recency rule": COLORS["neutral"], "Logistic regression": COLORS["aqua"],
@@ -383,7 +383,9 @@ def export_mlflow_runs() -> None:
         return
     try:
         runs = mlf.search_runs(experiment_names=["freshbasket-churn"], order_by=["start_time DESC"])
-        keep = [c for c in runs.columns if c.startswith(("params.", "metrics.test_", "metrics.valid_active")) or c in ("run_id", "start_time")]
-        runs[keep].head(len(GRIDS)).to_csv(OUTPUTS / "mlflow_runs_summary.csv", index=False)
+        # Latest run per model, metrics only: run IDs and timestamps are left out so the file is identical across re-runs
+        keep = sorted(c for c in runs.columns if c.startswith(("params.", "metrics.test_", "metrics.valid_active")))
+        latest = runs.head(len(GRIDS))[keep].sort_values("params.model")
+        latest.round(4).to_csv(OUTPUTS / "mlflow_runs_summary.csv", index=False)
     except Exception as e:
         print(f"  [mlflow] export skipped: {e}")

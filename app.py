@@ -65,7 +65,6 @@ def money(x):
 
 # --------------------------------------------------------------------------- overview
 def overview():
-    a = COHORT[COHORT.segment == "Active"]
     nq = K["next_quarter"]["active"]
     rec = COHORT.groupby("recency_months").churned.agg(["mean", "size"]).reset_index()
     rec["label"] = rec.recency_months.map(lambda v: "7+" if v >= 7 else str(int(v)))
@@ -439,4 +438,5 @@ def run_sim(cc, cu, oc, ou, wc, wr, m, h, thr):
 
 
 if __name__ == "__main__":
-    app.run(debug=False, port=8050)
+    import os
+    app.run(debug=False, port=int(os.environ.get("PORT", 8050)))

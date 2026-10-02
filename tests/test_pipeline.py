@@ -52,6 +52,7 @@ def test_api_scores_members():
     assert client.get("/health").json()["status"] == "ok"
     out = client.post("/score", json={"members": rows}).json()
     assert len(out) == 5 and all(0 <= r["churn_probability"] <= 1 for r in out)
+    assert all(len(r["top_3_drivers"]) == 3 and r["recommended_action"] for r in out)   # explanations + action, like the dashboard
 
 
 def test_scenario_engine_matches_pipeline_output():

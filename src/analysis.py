@@ -12,7 +12,7 @@ apply_style()
 
 
 # --------------------------------------------------------------------------- DQ visuals
-def fig_spend_repair(raw_activity: pd.DataFrame, clean_activity: pd.DataFrame) -> str:
+def fig_spend_repair(raw_activity: pd.DataFrame) -> str:
     raw = raw_activity.drop_duplicates()
     exp = raw.TRANSACTIONS * raw.AVG_BASKET_VALUE
     bad = (raw.TRANSACTIONS > 0) & ((raw.TOTAL_SPEND <= 0) | (raw.TOTAL_SPEND > 3 * exp))
@@ -187,7 +187,9 @@ def hypothesis_tests(test: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for group, cols in TEST_FEATURES.items():
         for c in cols:
-            x1, x0 = a.loc[a.churned == 1, c].dropna(), a.loc[a.churned == 0, c].dropna()
+            # Test observed values only: imputed ages (age_missing=1) are excluded, so results do not depend on imputation
+            obs = a[a.age_missing == 0] if c == "age" and "age_missing" in a else a
+            x1, x0 = obs.loc[obs.churned == 1, c].dropna(), obs.loc[obs.churned == 0, c].dropna()
             u, p = stats.mannwhitneyu(x1, x0, alternative="two-sided")
             rows.append({"group": group, "feature": c, "mean_churned": x1.mean(), "mean_retained": x0.mean(),
                          "rank_biserial": 2 * u / (len(x1) * len(x0)) - 1, "p_value": p})
@@ -207,7 +209,7 @@ def hypothesis_tests(test: pd.DataFrame) -> pd.DataFrame:
 
 def run_eda(raw: dict, activity: pd.DataFrame, test: pd.DataFrame) -> dict:
     return {
-        "spend_repair": fig_spend_repair(raw["activity"], activity),
+        "spend_repair": fig_spend_repair(raw["activity"]),
         "leaky_bucket": fig_leaky_bucket(activity),
         "recency_cliff": fig_recency_cliff(test),
         "fingerprint": fig_churn_fingerprint(activity, test),

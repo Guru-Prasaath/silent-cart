@@ -25,7 +25,7 @@ ASSUMPTIONS = [
     "at 7 months (\"6+\").",
     "**Categoricals.** City and tier variants are standardised by trimming and title-casing (40 to 10 cities, 12 to 3 tiers). Missing gender and "
     "price tier become an explicit 'Unknown'. Missing age is filled with the median of the training snapshots, plus a missing flag.",
-    f"**Decision threshold.** {{threshold}} maximises F1 for Active members of the validation snapshot. High risk means p at or above the threshold; "
+    "**Decision threshold.** {threshold} maximises F1 for Active members of the validation snapshot. High risk means p at or above the threshold; "
     "Medium means p of 10% or more.",
     f"**Economics (not measured, varied in sensitivity analysis).** Value of a retained member = {C.VALUE_HORIZON_MONTHS} months of their typical "
     f"monthly spend x {C.GROSS_MARGIN:.0%} gross margin. Coupon: ${C.COUPON_COST:.0f} cost, cuts churn probability by "
@@ -78,7 +78,7 @@ def build_markdown() -> str:
     actions = pd.read_csv(O / "retention_action_list.csv")
     parity = pd.read_csv(O / "spark_parity_check.csv") if (O / "spark_parity_check.csv").exists() else None
 
-    ta, tc = k["test_all"], k["test_active"]
+    tc = k["test_active"]
     best, thr = k["selected_model"], k["threshold"]
     A, B, C1, C2, D, E = (scen.iloc[i] for i in range(6))
     per10k = lambda v: v / k["n_test"] * 10_000
@@ -215,8 +215,10 @@ FreshBasket sends the same retention offers to every member, which wastes money 
 four questions: **who** will churn, **which signals** come first, whether **tier, marketing engagement and support experience** matter,
 and **what action** would reduce churn.
 
-The pipeline runs in eight steps: **data quality → leakage-safe features → rolling-origin validation → four models compared →
-calibration and threshold tuning → SHAP drivers and segments → ablation → retention economics**. It is a reproducible Python package
+The core pipeline: **data quality → leakage-safe features → rolling-origin validation → four models compared → calibration and
+threshold tuning → SHAP drivers and segments → ablation → retention economics**. It is followed by the extensions in section 9:
+a deep-learning challenger, survival analysis, personas, profit-optimal threshold, A/B design, next-quarter forecast,
+drift and fairness monitoring, and AI-drafted retention messages. It is a reproducible Python package
 (`src/`) with one entry point (`run_pipeline.py`), MLflow experiment tracking, unit tests (including an automated leakage test), a
 FastAPI scoring endpoint and a PySpark port of the feature pipeline for Databricks.
 

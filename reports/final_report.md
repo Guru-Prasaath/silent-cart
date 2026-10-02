@@ -36,8 +36,10 @@ FreshBasket sends the same retention offers to every member, which wastes money 
 four questions: **who** will churn, **which signals** come first, whether **tier, marketing engagement and support experience** matter,
 and **what action** would reduce churn.
 
-The pipeline runs in eight steps: **data quality → leakage-safe features → rolling-origin validation → four models compared →
-calibration and threshold tuning → SHAP drivers and segments → ablation → retention economics**. It is a reproducible Python package
+The core pipeline: **data quality → leakage-safe features → rolling-origin validation → four models compared → calibration and
+threshold tuning → SHAP drivers and segments → ablation → retention economics**. It is followed by the extensions in section 9:
+a deep-learning challenger, survival analysis, personas, profit-optimal threshold, A/B design, next-quarter forecast,
+drift and fairness monitoring, and AI-drafted retention messages. It is a reproducible Python package
 (`src/`) with one entry point (`run_pipeline.py`), MLflow experiment tracking, unit tests (including an automated leakage test), a
 FastAPI scoring endpoint and a PySpark port of the feature pipeline for Databricks.
 

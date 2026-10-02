@@ -48,7 +48,7 @@ Full narrative: [reports/final_report.md](reports/final_report.md) (and `.pdf`).
 
 ## Setup
 
-Requires Python 3.11+ (developed on 3.14).
+Requires **Python 3.12+** (numpy, scipy and shap need 3.12; developed and CI-tested on 3.14).
 
 ```bash
 python3 -m venv .venv

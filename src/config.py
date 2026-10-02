@@ -40,6 +40,9 @@ OUTREACH_RELATIVE_UPLIFT = 0.25  # service recovery reduces churn probability by
 WINBACK_COST = 5.0             # $ per lapsed member (email + small reactivation coupon)
 WINBACK_REACTIVATION = 0.05    # 5% of lapsed members re-activate after a win-back offer
 
+# Risk bands: High = p >= model threshold; Medium = p >= MEDIUM_RISK; else Low
+MEDIUM_RISK = 0.10
+
 # Colour tokens (validated categorical palette, light mode).
 COLORS = {
     "blue": "#2a78d6", "orange": "#eb6834", "aqua": "#1baf7a", "yellow": "#eda100",

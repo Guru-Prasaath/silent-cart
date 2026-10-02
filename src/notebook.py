@@ -57,7 +57,7 @@ print('Corrupted rows:', len(bad), '| negative:', (bad.TOTAL_SPEND < 0).sum(), '
       '| inflated 9-15x:', (ratio[bad.index] > 3).sum())
 display(bad.assign(ratio_to_expected=ratio[bad.index]).sort_values('ratio_to_expected').head(8)
         [['CUSTOMER_ID', 'MONTH', 'TRANSACTIONS', 'AVG_BASKET_VALUE', 'TOTAL_SPEND', 'ratio_to_expected']])"""),
-    code("display(Image(an.fig_spend_repair(raw['activity'], None)))"),
+    code("display(Image(an.fig_spend_repair(raw['activity'])))"),
     md("""**Zero-transaction months and missing months.** Months with 0 transactions are kept (they are a real inactivity
 signal), but 1,452 of them report categories purchased and 653 report coupons redeemed, which is impossible without
 a transaction, so those fields are zeroed. Separately, 953 months are simply *absent* inside members' active spans.

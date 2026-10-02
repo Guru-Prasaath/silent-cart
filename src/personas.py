@@ -68,7 +68,7 @@ def fit_personas(test: pd.DataFrame, k: int = 5):
 def fig_personas(prof: pd.DataFrame) -> str:
     z = prof[[f"z_{f}" for f in FEATURES]].to_numpy()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4.2), gridspec_kw={"width_ratios": [2.3, 1]})
-    im = ax1.imshow(z, cmap="RdBu_r", vmin=-2, vmax=2, aspect="auto")
+    ax1.imshow(z, cmap="RdBu_r", vmin=-2, vmax=2, aspect="auto")
     ax1.set_xticks(range(len(FEATURES)), [NICE[f] for f in FEATURES], rotation=30, ha="right")
     ax1.set_yticks(range(len(prof)), [f"{p}  (n={n})" for p, n in zip(prof.index, prof.members)])
     for (i, j), v in np.ndenumerate(z):

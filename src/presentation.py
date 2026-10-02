@@ -7,12 +7,12 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
-from pptx.util import Emu, Inches, Pt
+from pptx.util import Inches, Pt
 
 from . import config as C
 
 DARK, GREEN, MINT, TINT = "17332A", "2E7D5B", "BFE3CF", "EEF5F0"
-ORANGE, BLUE, INK, MUTED, WHITE, LINE = "EB6834", "2A78D6", "1B1B1B", "5F6B66", "FFFFFF", "D9E2DC"
+ORANGE, BLUE, INK, MUTED, WHITE = "EB6834", "2A78D6", "1B1B1B", "5F6B66", "FFFFFF"
 FONT = "Calibri"
 W, H = 13.333, 7.5
 FIG = C.FIGURES
@@ -184,8 +184,9 @@ def build() -> str:
     d.text(s, "Most of our churn has already happened.\nHere is how to stop the rest.", 0.8, 1.8, 11.5, 2.2, size=44, bold=True, color=WHITE)
     d.text(s, "Who is at risk, why, what to do, and what it is worth: from 18 months of loyalty data on 2,600 members",
            0.8, 4.35, 11, 0.9, size=18, color=MINT)
-    d.text(s, "Data Science  ·  Tailwyndz Propel Internship assessment", 0.8, 6.5, 8, 0.4, size=12, color=MINT)
-    d.notes(s, f"""Good morning. FreshBasket asked a simple question: which loyalty members are about to stop shopping, and what
+    d.text(s, [[("Guru Prasaath D", {"bold": True, "color": WHITE, "size": 15}),
+                ("   ·   Data Science  ·  Tailwyndz Propel Internship assessment", {"color": MINT})]], 0.8, 6.4, 11, 0.5, size=12)
+    d.notes(s, """Good morning. FreshBasket asked a simple question: which loyalty members are about to stop shopping, and what
     should we do about it? Today they send the same offers to everyone. In the next 12 minutes I'll show four things: that the
     churn number management sees mixes two very different problems; the warning signs that appear about two months before a
     member leaves; a model that catches about three in four at-risk members on a quarter it never saw; and a targeted retention
@@ -319,7 +320,7 @@ def build() -> str:
     Everything is tracked in MLflow, and the feature pipeline also exists in PySpark, verified identical, so it can run on Databricks.""")
 
     # 8 ── Results
-    s = d.slide(title=f"On Active members, machine learning roughly doubles what a recency rule can do", kicker="Model results · unseen Apr-Jun 2024 quarter")
+    s = d.slide(title="On Active members, machine learning roughly doubles what a recency rule can do", kicker="Model results · unseen Apr-Jun 2024 quarter")
     t = comp[(comp.split == "test") & (comp.population == "Active only")].copy()
     t["PR-AUC (95% CI)"] = [f"{a:.2f} ({lo:.2f}-{hi:.2f})" for a, lo, hi in zip(t.pr_auc, t.pr_auc_ci_low, t.pr_auc_ci_high)]
     tbl = pd.DataFrame({"Model": t.model, "PR-AUC (95% CI)": t["PR-AUC (95% CI)"],
@@ -334,7 +335,7 @@ def build() -> str:
                f"{k['selected_model']} (best on validation). Gradient boosting is statistically tied")
     d.bullets(s, [("Selected: ", sel_txt),
                   ("At threshold {:.2f}: ".format(k['threshold']), f"catches {tc['recall']:.0%} of Active churners, {tc['precision']:.0%} precision; top 10% of scores = {tc['lift_top10pct']:.1f}x lift"),
-                  ("Honest framing: ", f"on all members every model scores PR-AUC > 0.94 because lapsed members are easy. That number would mislead")],
+                  ("Honest framing: ", "on all members every model scores PR-AUC > 0.94 because lapsed members are easy. That number would mislead")],
               0.6, 4.25, 6.6, 2.6, size=13, gap=9)
     d.image(s, "09_calibration.png", 7.4, 4.95, 5.5, 2.0)
     d.notes(s, f"""On active members, the recency rule reaches a PR-AUC of {rule.pr_auc:.2f}. All three machine-learning models roughly double

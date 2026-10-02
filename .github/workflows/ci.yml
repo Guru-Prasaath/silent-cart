@@ -14,7 +14,9 @@ jobs:
           python-version: "3.14"
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt ruff
+      - name: Lint (unused imports / variables, undefined names)
+        run: ruff check --select F src app.py run_pipeline.py scripts tests
       - name: Rebuild every output from the raw data (torch-free; GRU challenger is skipped)
         run: python run_pipeline.py --skip-notebook --skip-report --skip-deck
       - name: Tests (leakage, labels, cleaning, API, scenario engine, dashboard)

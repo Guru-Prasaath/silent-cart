@@ -5,7 +5,7 @@ features use months strictly before `cutoff`; inside the 6-month window, trailin
 last row counts as 0, gaps between rows and months before the first row count as missing.
 On Databricks, `activity` / `profile` would be Delta tables landed by Azure Data Factory.
 """
-from pyspark.sql import DataFrame, SparkSession, Window, functions as F
+from pyspark.sql import DataFrame, SparkSession, functions as F
 
 W = 6
 CAP = W + 1
