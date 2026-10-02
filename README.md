@@ -4,6 +4,16 @@
 
 **Spotting FreshBasket loyalty members who go quiet before they churn: prediction, diagnosis & retention strategy.**
 
+### ▶ Live demo: [silent-cart.onrender.com](https://silent-cart.onrender.com/)
+
+> **First load may take 30-60 seconds.** The app is hosted on Render's free plan, which puts it to sleep after about 15
+> minutes without visitors. The first request wakes it up (a "cold start"); after that, every page and click is fast.
+> If you see a loading screen, wait a moment and refresh.
+
+Links straight to each tab: [Overview](https://silent-cart.onrender.com/?tab=overview) ·
+[Members](https://silent-cart.onrender.com/?tab=members) (click any member, then **Draft with AI**) ·
+[Scenario simulator](https://silent-cart.onrender.com/?tab=sim) · [Insights](https://silent-cart.onrender.com/?tab=insights)
+
 Customer churn prediction for FreshBasket Retail's Silver/Gold/Platinum loyalty program (2,600 members, Jan-2023 to Jun-2024).
 One command rebuilds every output: data-quality audit, leakage-safe features, out-of-time validated models, SHAP drivers,
 ablation, retention economics, survival analysis, personas, a deep-learning challenger, a next-quarter forecast,
@@ -74,7 +84,9 @@ python -m src.genai --n 60                 # AI-draft retention messages for the
 python run_pipeline.py --genai             # full run including AI messages
 ```
 
-**Deploy the console.** The `Dockerfile` serves the dashboard with gunicorn, and CI builds the image and checks it responds on every push.
+**Deploy the console.** Live at **https://silent-cart.onrender.com/** (free plan: allow 30-60 s for a cold start after idle).
+The `Dockerfile` serves the dashboard with gunicorn (1 worker, 4 threads, sized for the 512 MB free plan), and CI builds the
+image and checks it responds on every push. Render redeploys automatically on every push to `main`.
 - **Render (free):** New + → Blueprint → select this repo (`render.yaml`), then optionally add `GROQ_API_KEY`.
 - **Any container host:** `docker build -t silent-cart . && docker run -p 8050:8050 silent-cart`.
 
