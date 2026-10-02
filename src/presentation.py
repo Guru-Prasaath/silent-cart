@@ -217,7 +217,7 @@ def build() -> str:
     already gone quiet for three months or more before the label window started; that is win-back, not prediction. Second, among
     members still shopping, the model catches {tc['recall']:.0%} of the ones who leave, with {tc['precision']:.0%} precision, against a base
     rate under 10%. Third, support experience is a strong lever: members with three or more tickets churn at nearly ten times
-    the rate of members with none. And fourth, targeting changes the economics: the playbook returns about {money(E.net_value)} on this
+    the rate of members with none. And fourth, targeting changes the economics: the playbook returns about {amount(E.net_value)} on this
     cohort where the blanket coupon loses {amount(A.net_value)}. My recommendation is at the bottom; I'll come back to it at the end.""")
 
     # 3 ── Data quality
@@ -270,7 +270,7 @@ def build() -> str:
     for i, (v, lab) in enumerate(tiles):
         d.stat(s, v, lab, 0.6 + i * 4.1, 5.6, 3.9, color=ORANGE, size=28, h=1.3)
     d.notes(s, """Here I lined up every active member on their last purchase before April and looked backwards. Retained members,
-    in blue, are flat. Churners, in orange, show the same sequence every time: transactions, app sessions and email opens fade
+    in blue, are flat. Churners, in orange, show the same sequence on average: transactions, app sessions and email opens fade
     over roughly two months, while support tickets spike. That gives us a concrete intervention window, and simple triggers a
     CRM team can use without any model: a 40% drop in spend, app use falling below one session every two months, or a formal
     complaint. All of these are statistically significant after correcting for multiple tests.""")
@@ -419,7 +419,7 @@ def build() -> str:
     service call by 25%, and a member's value is six months of their spend at a 25% margin. The blanket coupon, today's approach,
     costs about ${A.cost / 1000:,.0f}k on this cohort and loses money, because most recipients were staying anyway or are already
     gone. The playbook gives each member at most one action and only when it pays back: about {E.churners_prevented:.0f} churners
-    prevented for ${E.cost / 1000:,.1f}k, a {money(E.net_value)} return. The brief's support-outreach idea works, but only when targeted:
+    prevented for ${E.cost / 1000:,.1f}k, a {amount(E.net_value)} return. The brief's support-outreach idea works, but only when targeted:
     calling everyone with tickets loses money, while calling the model-flagged ones makes money. The sensitivity chart shows targeted
     actions break even at roughly half the assumed effect.""")
 
@@ -447,7 +447,9 @@ def build() -> str:
     since Platinum isn't buying loyalty. And prove the uplift with a hold-out control group before scaling, because the economics
     rest on assumptions until we measure them; about 730 flagged members are enough to detect a 15% uplift. Everything I've shown
     regenerates from one command, the feature pipeline is ported to Spark for Databricks, and there is a Dash retention console
-    where the CRM team can explore members and test their own assumptions. Thank you; happy to take questions.""")
+    where the CRM team can explore members and test their own assumptions. [Optional, if time allows: switch to the live
+    console for about 60 seconds. Open a high-risk member, click Draft with AI, then drag one simulator slider.]
+    Thank you; happy to take questions.""")
 
     C.PRESENTATION.mkdir(exist_ok=True)
     path = C.PRESENTATION / "churn_presentation.pptx"

@@ -1,6 +1,6 @@
 # Silent Cart: speaker notes (practice script)
 
-Total: 1339 words, about 10 minutes at 130 words per minute. With pauses and slide changes this lands around 11-13 minutes, leaving time for questions in a 15-minute slot.
+Total: 1365 words, about 10 minutes at 130 words per minute. With pauses and slide changes this lands around 11-13 minutes, leaving time for questions in a 15-minute slot.
 
 Tips: pause after each headline number; point at the chart you are describing; slide 4 (two churns) and slide 11 (money) are the moments to slow down.
 
@@ -12,7 +12,7 @@ Good morning. FreshBasket asked a simple question: which loyalty members are abo
 ## Slide 2: The answer in one slide
 *~0.9 min · 114 words*
 
-Here's the whole story on one slide. First, 80% of members labelled as churned had already gone quiet for three months or more before the label window started; that is win-back, not prediction. Second, among members still shopping, the model catches 76% of the ones who leave, with 70% precision, against a base rate under 10%. Third, support experience is a strong lever: members with three or more tickets churn at nearly ten times the rate of members with none. And fourth, targeting changes the economics: the playbook returns about +$3.6k on this cohort where the blanket coupon loses $15.4k. My recommendation is at the bottom; I'll come back to it at the end.
+Here's the whole story on one slide. First, 80% of members labelled as churned had already gone quiet for three months or more before the label window started; that is win-back, not prediction. Second, among members still shopping, the model catches 76% of the ones who leave, with 70% precision, against a base rate under 10%. Third, support experience is a strong lever: members with three or more tickets churn at nearly ten times the rate of members with none. And fourth, targeting changes the economics: the playbook returns about $3.6k on this cohort where the blanket coupon loses $15.4k. My recommendation is at the bottom; I'll come back to it at the end.
 
 ## Slide 3: We fixed the data before trusting it, and found the label leaks
 *~0.9 min · 119 words*
@@ -27,7 +27,7 @@ This chart changed how I framed the whole project. Churn probability is a cliff 
 ## Slide 5: Churn has a fingerprint, and a two-month window to act
 *~0.7 min · 93 words*
 
-Here I lined up every active member on their last purchase before April and looked backwards. Retained members, in blue, are flat. Churners, in orange, show the same sequence every time: transactions, app sessions and email opens fade over roughly two months, while support tickets spike. That gives us a concrete intervention window, and simple triggers a CRM team can use without any model: a 40% drop in spend, app use falling below one session every two months, or a formal complaint. All of these are statistically significant after correcting for multiple tests.
+Here I lined up every active member on their last purchase before April and looked backwards. Retained members, in blue, are flat. Churners, in orange, show the same sequence on average: transactions, app sessions and email opens fade over roughly two months, while support tickets spike. That gives us a concrete intervention window, and simple triggers a CRM team can use without any model: a 40% drop in spend, app use falling below one session every two months, or a formal complaint. All of these are statistically significant after correcting for multiple tests.
 
 ## Slide 6: Support experience and engagement matter. Tier does not.
 *~0.7 min · 89 words*
@@ -57,9 +57,9 @@ The brief asked whether behavioural, engagement and support features beat demogr
 ## Slide 11: Targeting turns retention from a cost into a return
 *~0.9 min · 120 words*
 
-Now the money. Assumptions are explicit: a ten-dollar coupon cuts a member's churn probability by 15%, a fifteen-dollar service call by 25%, and a member's value is six months of their spend at a 25% margin. The blanket coupon, today's approach, costs about $24k on this cohort and loses money, because most recipients were staying anyway or are already gone. The playbook gives each member at most one action and only when it pays back: about 43 churners prevented for $3.9k, a +$3.6k return. The brief's support-outreach idea works, but only when targeted: calling everyone with tickets loses money, while calling the model-flagged ones makes money. The sensitivity chart shows targeted actions break even at roughly half the assumed effect.
+Now the money. Assumptions are explicit: a ten-dollar coupon cuts a member's churn probability by 15%, a fifteen-dollar service call by 25%, and a member's value is six months of their spend at a 25% margin. The blanket coupon, today's approach, costs about $24k on this cohort and loses money, because most recipients were staying anyway or are already gone. The playbook gives each member at most one action and only when it pays back: about 43 churners prevented for $3.9k, a $3.6k return. The brief's support-outreach idea works, but only when targeted: calling everyone with tickets loses money, while calling the model-flagged ones makes money. The sensitivity chart shows targeted actions break even at roughly half the assumed effect.
 
 ## Slide 12: Recommendations: a 90-day plan
-*~1.0 min · 136 words*
+*~1.2 min · 162 words*
 
-To close, six actions for the next 90 days. Split the churn KPI so management sees what retention can actually influence, and add a 60-day no-purchase trigger. Run the scoring and next-best-action list every month. Treat support as a retention lever and close the loop inside the two-month window. Use free nudges before paid offers. Revisit tier perks, since Platinum isn't buying loyalty. And prove the uplift with a hold-out control group before scaling, because the economics rest on assumptions until we measure them; about 730 flagged members are enough to detect a 15% uplift. Everything I've shown regenerates from one command, the feature pipeline is ported to Spark for Databricks, and there is a Dash retention console where the CRM team can explore members and test their own assumptions. Thank you; happy to take questions.
+To close, six actions for the next 90 days. Split the churn KPI so management sees what retention can actually influence, and add a 60-day no-purchase trigger. Run the scoring and next-best-action list every month. Treat support as a retention lever and close the loop inside the two-month window. Use free nudges before paid offers. Revisit tier perks, since Platinum isn't buying loyalty. And prove the uplift with a hold-out control group before scaling, because the economics rest on assumptions until we measure them; about 730 flagged members are enough to detect a 15% uplift. Everything I've shown regenerates from one command, the feature pipeline is ported to Spark for Databricks, and there is a Dash retention console where the CRM team can explore members and test their own assumptions. [Optional, if time allows: switch to the live console for about 60 seconds. Open a high-risk member, click Draft with AI, then drag one simulator slider.] Thank you; happy to take questions.
