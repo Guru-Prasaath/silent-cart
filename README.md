@@ -39,6 +39,42 @@ python app.py               # Silent Cart Retention Console -> http://127.0.0.1:
 
 Full narrative: [reports/final_report.md](reports/final_report.md) (and `.pdf`). Slides: [presentation/churn_presentation.pptx](presentation/churn_presentation.pptx), with speaker notes.
 
+## Screenshots
+
+**Overview:** headline KPIs, the "two churns" recency cliff, model comparison with confidence intervals, and behavioural personas.
+
+![Retention Console overview](docs/screenshots/01_overview.png)
+
+<table>
+<tr>
+<td width="50%"><b>Members:</b> a prioritised action list. Click a member for their churn risk, SHAP reasons, next best action and an <b>AI-drafted call script</b> that passed the guardrails.<br><br><img src="docs/screenshots/02_members_ai_message.png" alt="Member drill-down with AI-drafted message"></td>
+<td width="50%"><b>Scenario simulator:</b> nine assumption sliders recompute every strategy's cost, churners prevented and net value live.<br><br><img src="docs/screenshots/03_scenario_simulator.png" alt="Scenario simulator"></td>
+</tr>
+</table>
+
+**Insights:** survival curves, the profit-vs-threshold curve, feature drift (PSI), A/B test sizing and fairness checks.
+
+![Insights tab](docs/screenshots/04_insights.png)
+
+## Key charts
+
+<table>
+<tr>
+<td width="50%"><b>1. Two churns in one label.</b> 80% of "churners" had already stopped buying before April; only Active members need prediction.<br><img src="outputs/figures/03_recency_cliff_two_churns.png" alt="Recency cliff"></td>
+<td width="50%"><b>2. The churn fingerprint.</b> Purchases, app use and email opens fade about 2 months before members leave, while support tickets spike.<br><img src="outputs/figures/04_churn_fingerprint.png" alt="Churn fingerprint"></td>
+</tr>
+<tr>
+<td><b>3. Models on the unseen quarter.</b> On Active members, ML roughly doubles the recency rule (PR-AUC 0.46 to about 0.8).<br><img src="outputs/figures/07_pr_curves.png" alt="Precision-recall curves"></td>
+<td><b>4. What drives risk (SHAP).</b> Low recent activity and engagement, plus support tickets, push risk up.<br><img src="outputs/figures/11_shap_summary_active.png" alt="SHAP summary"></td>
+</tr>
+<tr>
+<td><b>5. Retention economics.</b> The next-best-action playbook costs 84% less than a blanket coupon and turns a loss into a profit.<br><img src="outputs/figures/14_retention_scenarios.png" alt="Retention scenarios"></td>
+<td><b>6. Behavioural personas.</b> "Fading &amp; frustrated" members churn at 60%; the "Loyal core" at 0%.<br><img src="outputs/figures/18_personas.png" alt="Personas"></td>
+</tr>
+</table>
+
+All 19 charts are in [`outputs/figures/`](outputs/figures/) and explained in the [final report](reports/final_report.md).
+
 ## What makes this approach different
 
 - **Two-segment framing.** Every metric is reported for *all eligible* and *Active-only* members, because all-member metrics are inflated by easy, already-lapsed cases.
@@ -178,6 +214,7 @@ src/                 config, data_quality, features, analysis, models, explain, 
                      personas, survival, monitoring, deep, forecast, model_card, report, presentation,
                      notebook, spark_features, api, genai, viz
 Dockerfile, render.yaml  container + one-click Render deploy
+docs/screenshots/    dashboard screenshots used in this README
 scripts/             spark_parity_check.py            tests/            pytest suite
 outputs/             CSVs, figures/, models/           reports/          final_report.md/.pdf
 presentation/        churn_presentation.pptx
