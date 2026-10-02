@@ -375,13 +375,19 @@ apologised to a member with no tickets. Each failure became a rule and a test.
 60 priority members (balanced across coupon, service call and win-back) received a drafted message: 60 by the LLM (Groq, `openai/gpt-oss-20b`), 0 by the template engine. Guardrails passed for 100%.
 
 > **Proactive service call** (Agent call script), drivers: *Transactions trending down (-1.9/month); No marketing emails opened in last 3m; No transactions last month*  
-> **Checking in on your FreshBasket experience**: Hi, I’m calling from FreshBasket to see how we can make your shopping easier. We’ve added a $10 credit to your Gold account for your favorite dairy items—just pick up your next order and it’s ready to use. Could you share what’s been missing from your recent visits? Thank you for being part of our community, and feel free to let me know how we can help.
+> **Checking in on your recent support request**: Hi, I’m calling from FreshBasket to thank you for reaching out about your recent issue and to see if everything has been resolved to your satisfaction. We’ve added a $10.00 credit to your loyalty account, which you can use on any dairy products you love. Is there anything else I can help you with today? Thank you for being a valued Gold member.
 
 > **Personalised coupon** (App push + email), drivers: *Transactions trending down (-1.5/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m*  
-> **Enjoy a Refreshing Treat on Us**: We’ve added a $10 beverage coupon to your loyalty account to help you discover new favorites. Drop by any FreshBasket location and redeem it on your next purchase. We’re excited to see you back soon!
+> **Enjoy a Fresh Beverage Treat**: We’ve added a $10 beverage coupon to your loyalty account—just for you. Use it on any drink in the Beverages aisle during your next visit. Let us know if you need anything else. Thank you for being a valued Gold member.
 
 > **Win-back offer** (Email), drivers: *No purchase for 5 months; No marketing emails opened in last 3m; Spend $0/month (last 3m)*  
-> **We’ve Got a Fresh Surprise for You**: Hello, we’ve added a $5 credit to your loyalty account for your favorite frozen foods. Use it on your next visit to FreshBasket and enjoy a tasty treat on us. When you’re ready, just head to the frozen aisle and the cashier will apply the credit automatically. We’re looking forward to seeing you soon.
+> **We’ve added a special offer to your account**: Hello,
+
+We’ve added a $5 credit to your loyalty account for your favorite frozen foods. It’s ready for you to use on your next visit.
+
+We’d love to hear how we can make your shopping experience better. Let us know what you’re looking for or if there’s anything we can help with.
+
+Thank you for being a valued member of FreshBasket.
 
 ## 10. Recommendations
 

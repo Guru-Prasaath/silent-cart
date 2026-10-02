@@ -87,3 +87,18 @@ def test_genai_guardrails_and_template_fallback():
     row = pd.read_csv(C.OUTPUTS / "retention_action_list.csv").query("recommended_action != 'Monitor (no paid action)'").iloc[0]
     d = genai.draft(row, key="")                                                                           # no key -> template
     assert d["source"].startswith("template") and d["guardrail_pass"] and d["message"]
+
+
+def test_genai_support_history_controls_apologies():
+    """An apology/acknowledgement is allowed only when the member really contacted support."""
+    from src import genai
+    base = {"channel": "Agent call script", "recommended_action": "Proactive service call", "persona": "", "membership_tier": "Gold",
+            "preferred_category": "Dairy", "why_flagged": ["Transactions trending down (-1.9/month)"], "offer_budget_usd": 10.0}
+    with_complaint = {**base, "support_history": {"support_tickets_last_3_months": 1, "support_tickets_last_6_months": 1,
+                                                  "formal_complaint_last_3_months": True}}
+    no_contact = {**base, "support_history": {"support_tickets_last_3_months": 0, "support_tickets_last_6_months": 0,
+                                              "formal_complaint_last_3_months": False}}
+    msg = {"subject": "Follow-up", "message": "Thank you for reaching out recently; I'm sorry about the issue. Is it resolved?"}
+    assert genai.check(msg, with_complaint) == []
+    assert genai.check(msg, no_contact)                          # same words, no support contact -> flagged
+    assert "concern you raised" in genai.template(with_complaint)["message"]

@@ -43,10 +43,13 @@ Rules (all mandatory):
 - The offer is ALREADY loaded onto the member's loyalty account: say so. Never invent promo codes, links, gift cards, vouchers,
   expiry dates or store names.
 - Never describe the member's behaviour back to them ("we noticed you visit less", "you haven't opened our emails"). Be welcoming instead.
-- Only apologise or mention support if "why_flagged" mentions support tickets or complaints; otherwise do not imply anything went wrong.
+- "support_history" gives counts of recent support tickets and whether a formal complaint was filed. If there are recent tickets or a
+  complaint, the message (especially a call script) must open by acknowledging that they recently contacted us with an issue,
+  thank them for raising it, and ask whether it has been fully resolved. You do NOT know what the issue was: never guess or
+  describe it. If there are no tickets and no complaint, do not apologise or imply anything went wrong.
 - Warm, specific, one clear call to action. No emojis, no pressure, no exclamation-mark spam (max one).
 - An "Agent call script" is an OUTBOUND call: the store is calling the member. Do not say they reached out or called us
-  unless support tickets are listed.
+  unless support_history shows tickets.
 - For an "Agent call script": write 3-4 short lines the agent says (one per line). Open with an acknowledgement of their support
   request if support issues are listed, otherwise with a friendly check-in; ask an open question; mention the loaded offer; close politely.
 Return JSON only: {"subject": "<short subject or call opener>", "message": "<the message>"}"""
@@ -66,10 +69,24 @@ def api_key() -> str | None:
 
 
 # --------------------------------------------------------------------------- context & templates
+def _support_history(row) -> dict:
+    """Recent support contact, as facts the agent can acknowledge (counts only; ticket contents are never available)."""
+    get = lambda c: row.get(c) if c in row and pd.notna(row.get(c)) else 0
+    return {"support_tickets_last_3_months": int(get("tickets_l3")), "support_tickets_last_6_months": int(get("tickets_6m")),
+            "formal_complaint_last_3_months": bool(get("complaint_l3"))}
+
+
+def has_support_issue(ctx: dict) -> bool:
+    s = ctx.get("support_history", {})
+    return (s.get("support_tickets_last_6_months", 0) > 0 or s.get("formal_complaint_last_3_months", False)
+            or any(w in " ".join(ctx["why_flagged"]).lower() for w in ("ticket", "complaint")))
+
+
 def context(row: pd.Series) -> dict:
     """The ONLY information the LLM sees (no identifiers, no demographics)."""
     action = row.recommended_action
     return {"channel": CHANNEL.get(action, "Email"), "recommended_action": action,
+            "support_history": _support_history(row),
             "persona": row.get("persona", "") if pd.notna(row.get("persona", "")) else "",
             "membership_tier": row.tier, "preferred_category": row.preferred_category,
             "why_flagged": str(row.top_3_drivers).split("; "),
@@ -78,9 +95,11 @@ def context(row: pd.Series) -> dict:
 
 def template(ctx: dict) -> dict:
     cat, tier, budget = ctx["preferred_category"], ctx["membership_tier"], ctx["offer_budget_usd"]
-    support = any("ticket" in d.lower() or "complaint" in d.lower() for d in ctx["why_flagged"])
+    support = has_support_issue(ctx)
+    complaint = ctx.get("support_history", {}).get("formal_complaint_last_3_months", False)
     if ctx["recommended_action"] == "Proactive service call":
-        lines = ["Hi, this is the FreshBasket store team. I'm calling about your recent support requests, and I'm sorry we didn't get it right first time."
+        lines = [("Hi, this is the FreshBasket store team. I'm following up on the concern you raised with us recently, and thank you for telling us about it."
+                  if complaint else "Hi, this is the FreshBasket store team. I'm calling about your recent support requests, and I'm sorry we didn't get it right first time.")
                  if support else "Hi, this is the FreshBasket store team, checking in on how your recent shopping trips have gone.",
                  "Is there anything still unresolved that I can fix for you today?",
                  f"As a thank-you for your patience as a {tier} member, we've added ${budget:.0f} off your next {cat.lower()} shop.",
@@ -112,7 +131,10 @@ def check(draft: dict, ctx: dict) -> list[str]:
         problems.append("percentage offer (budget is in dollars)")
     if INVENTED_CODE.search(draft.get("message", "")):
         problems.append(f"invented code: {INVENTED_CODE.search(draft.get('message', '')).group(0)}")
-    support = any(w in " ".join(ctx["why_flagged"]).lower() for w in ("ticket", "complaint"))
+    support = has_support_issue(ctx)
+    ACK = r"\b(raised|reach(?:ed|ing) out|contact(?:ed)? us|concerns?|issues?|\w*resolved|requests?|feedback|got in touch)\b"
+    if support and ctx["recommended_action"] == "Proactive service call" and not re.search(ACK, text, re.I):
+        problems.append("call script ignores the member's recent support contact")
     if not support and re.search(r"\b(sorry|apolog\w*|tough time|inconvenience|reached out|you called|your request)\b", text, re.I):
         problems.append("implies a support issue that is not in the data")
     return problems
@@ -164,7 +186,8 @@ def draft(row: pd.Series, key: str | None = None, model: str | None = None) -> d
 
 
 def _fingerprint(row) -> str:
-    return hashlib.sha1(f"{row.recommended_action}|{row.top_3_drivers}|{row.get('persona', '')}".encode()).hexdigest()[:12]
+    sup = _support_history(row)
+    return hashlib.sha1(f"{row.recommended_action}|{row.top_3_drivers}|{row.get('persona', '')}|{sorted(sup.items())}".encode()).hexdigest()[:12]
 
 
 def run(actions: pd.DataFrame | None = None, n: int = 60, template_only: bool = False, refresh: bool = False,
@@ -180,9 +203,12 @@ def run(actions: pd.DataFrame | None = None, n: int = 60, template_only: bool = 
     for _, r in todo.iterrows():
         fp = _fingerprint(r)
         hit = cache[(cache.customer_id == r.customer_id) & (cache.fingerprint == fp)] if len(cache) else cache
-        if len(hit) and (template_only or not str(hit.iloc[0].source).startswith("template") or not key):
-            rows.append(hit.iloc[0].to_dict())
-            continue
+        if len(hit):
+            cached = hit.iloc[0].to_dict()
+            still_ok = not check({"subject": cached.get("subject", ""), "message": cached.get("message", "")}, context(r))
+            if still_ok and (template_only or not str(cached["source"]).startswith("template") or not key):
+                rows.append(cached)                      # cached drafts must still pass the CURRENT guardrails
+                continue
         d = draft(r, key=key or "")
         rows.append({"priority_rank": r.priority_rank, "customer_id": r.customer_id, "recommended_action": r.recommended_action,
                      "persona": r.get("persona", ""), "top_3_drivers": r.top_3_drivers, "fingerprint": fp, **d})

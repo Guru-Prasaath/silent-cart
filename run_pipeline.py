@@ -98,7 +98,8 @@ def main(args):
     nba = nba.merge(persona_of, on="customer_id", how="left").fillna({"persona": "Lapsed"})
     actions = nba.assign(risk_band=band)[["customer_id", "segment", "persona", "tier", "city", "preferred_category",
                                           "churn_probability", "risk_band", "value_monthly_spend", "revenue_at_risk",
-                                          "recommended_action", "expected_net_value", "top_3_drivers"]]
+                                          "recommended_action", "expected_net_value", "top_3_drivers",
+                                          "tickets_l3", "tickets_6m", "complaint_l3"]]
     actions = actions.sort_values(["expected_net_value", "revenue_at_risk"], ascending=False)
     actions.insert(0, "priority_rank", np.arange(1, len(actions) + 1))
     actions.round(2).to_csv(C.OUTPUTS / "retention_action_list.csv", index=False)
