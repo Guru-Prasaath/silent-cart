@@ -26,6 +26,11 @@ def money(x):
     return f"{'−' if x < 0 else '+' if x > 0 else ''}${abs(x) / 1000:,.1f}k"
 
 
+def amount(x):
+    """Unsigned dollar amount for prose ('loses $15.4k'), where the verb already carries the sign."""
+    return f"${abs(x) / 1000:,.1f}k"
+
+
 class Deck:
     def __init__(self):
         self.prs = Presentation()
@@ -213,7 +218,7 @@ def build() -> str:
     members still shopping, the model catches {tc['recall']:.0%} of the ones who leave, with {tc['precision']:.0%} precision, against a base
     rate under 10%. Third, support experience is a strong lever: members with three or more tickets churn at nearly ten times
     the rate of members with none. And fourth, targeting changes the economics: the playbook returns about {money(E.net_value)} on this
-    cohort where the blanket coupon loses {money(-A.net_value)}. My recommendation is at the bottom; I'll come back to it at the end.""")
+    cohort where the blanket coupon loses {amount(A.net_value)}. My recommendation is at the bottom; I'll come back to it at the end.""")
 
     # 3 ── Data quality
     s = d.slide(title="We fixed the data before trusting it, and found the label leaks", kicker="Data quality")
@@ -447,5 +452,26 @@ def build() -> str:
     C.PRESENTATION.mkdir(exist_ok=True)
     path = C.PRESENTATION / "churn_presentation.pptx"
     d.prs.save(path)
+    write_speaker_notes(d.prs)
     print(f"  deck -> {path.relative_to(C.ROOT)} ({d.n} slides)")
+    return str(path)
+
+
+def write_speaker_notes(prs, wpm: int = 130) -> str:
+    """Export every slide's speaker notes to presentation/speaker_notes.md: a printable practice script."""
+    total, body = 0, []
+    for i, s in enumerate(prs.slides, 1):
+        texts = [sh.text_frame.text.replace("\n", " ") for sh in s.shapes if sh.has_text_frame and sh.text_frame.text.strip()]
+        title = next((t for t in texts if not t.isupper() and len(t) > 15), f"Slide {i}")
+        note = s.notes_slide.notes_text_frame.text.strip()
+        words = len(note.split())
+        total += words
+        body += [f"## Slide {i}: {title}", f"*~{words / wpm:.1f} min · {words} words*", "", note, ""]
+    head = ["# Silent Cart: speaker notes (practice script)", "",
+            f"Total: {total} words, about {total / wpm:.0f} minutes at {wpm} words per minute. With pauses and slide changes "
+            "this lands around 11-13 minutes, leaving time for questions in a 15-minute slot.", "",
+            "Tips: pause after each headline number; point at the chart you are describing; slide 4 (two churns) and "
+            "slide 11 (money) are the moments to slow down.", ""]
+    path = C.PRESENTATION / "speaker_notes.md"
+    path.write_text("\n".join(head + body))
     return str(path)
