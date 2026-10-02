@@ -92,6 +92,44 @@ All 19 charts are in [`outputs/figures/`](outputs/figures/) and explained in the
   Without a key, the template engine writes every message, so the project always runs.
 - **A product, not just a notebook.** The Dash **Retention Console** has four tabs: KPIs; a filterable action list with a member drill-down (SHAP reasons, persona, activity history); a live scenario simulator with 9 assumption sliders; and an insights tab. Dash runs natively on Databricks Apps.
 
+## Tech stack
+
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-3.0-150458?logo=pandas&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.14-EE4C2C?logo=pytorch&logoColor=white)
+![SHAP](https://img.shields.io/badge/SHAP-0.52-6E40C9)
+![MLflow](https://img.shields.io/badge/MLflow-3.16-0194E2?logo=mlflow&logoColor=white)
+![Apache Spark](https://img.shields.io/badge/PySpark-4.2-E25A1C?logo=apachespark&logoColor=white)
+![Plotly Dash](https://img.shields.io/badge/Dash-4.4-3F4F75?logo=plotly&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.142-009688?logo=fastapi&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq-gpt--oss--20b-F55036)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI-2088FF?logo=githubactions&logoColor=white)
+![Render](https://img.shields.io/badge/Render-deployed-46E3B7?logo=render&logoColor=white)
+
+| Area | Tools | Used for |
+|---|---|---|
+| **Language** | Python 3.14 (3.12+ supported) | Everything, behind a single `run_pipeline.py` entry point |
+| **Data wrangling** | pandas, NumPy, openpyxl | Reading the Excel workbook, cleaning, leakage-safe snapshot features |
+| **Machine learning** | scikit-learn | Logistic regression, random forest, gradient boosting, Platt calibration, k-means personas |
+| **Deep learning** | PyTorch (optional) | GRU challenger on raw monthly activity sequences |
+| **Statistics** | SciPy | Mann-Whitney U, chi-square, Benjamini-Hochberg correction, bootstrap CIs, Kaplan-Meier and log-rank tests, A/B test power calculation |
+| **Explainability** | SHAP | Global drivers and three plain-English reasons per member |
+| **Experiment tracking** | MLflow | Logging every model run (parameters and metrics) |
+| **Big data / scale** | PySpark (optional) | Spark port of the feature pipeline, verified identical to pandas; Databricks job notebook (reference) |
+| **Generative AI** | Groq API (`openai/gpt-oss-20b`) via httpx | Guardrailed retention messages and call scripts, with template fallback |
+| **Dashboard** | Dash, Plotly | Retention Console: overview, member drill-down, live scenario simulator, insights |
+| **API** | FastAPI, Uvicorn, Pydantic | `/score` endpoint returning risk, top-3 drivers and next best action |
+| **Visualisation** | Matplotlib | The 19 report charts |
+| **Reporting** | Jupyter, nbconvert, python-pptx, Markdown, headless Chrome | Executed EDA notebook, auto-generated slide deck and speaker notes, report as Markdown and PDF |
+| **Testing and quality** | pytest, ruff | Leakage, label, cleaning, API, scenario, dashboard and GenAI guardrail tests; linting |
+| **DevOps and deployment** | Git, GitHub Actions, Docker, gunicorn, Render | CI (lint, full rebuild, tests, Docker build and smoke test) and the live demo |
+| **Cloud architecture (design)** | Azure Data Factory, Databricks, Delta, MLflow registry | Production path described in the report and the Databricks job notebook (not run on a live workspace) |
+
+Exact versions are pinned in [`requirements.txt`](requirements.txt), with the optional extras in
+[`requirements-dl.txt`](requirements-dl.txt) and [`requirements-spark.txt`](requirements-spark.txt).
+
 ## Setup
 
 Requires **Python 3.12+** (numpy, scipy and shap need 3.12; developed and CI-tested on 3.14).
