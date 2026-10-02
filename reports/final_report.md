@@ -354,6 +354,35 @@ The ranked list with drivers and next best action is in `outputs/next_quarter_wa
 
 Dash is natively supported on Databricks Apps, so the console can be deployed next to the model.
 
+### 9.9 GenAI last mile: retention messages drafted per member
+The pipeline already says *who* is at risk, *why* (SHAP) and *what to do* (next best action). An LLM now drafts *what to say*:
+an app push, an email, or a call script for the support agent.
+
+**Grounding and privacy.** The prompt contains only the member's three SHAP drivers, persona, preferred category, tier,
+action and offer budget. No name, ID, age or city is sent.
+
+**Guardrails.** Every draft is checked automatically, retried once with the violations fed back, and otherwise replaced by
+a deterministic template. A draft fails if it:
+- mentions churn, models, prediction or tracking;
+- offers more than the budget, or uses percentage offers;
+- contains an invented promo code, gift card or voucher;
+- apologises for a support issue the member never raised;
+- is too long.
+
+The first live run showed why this matters: unguarded drafts invented a promo code (`WELCOME5`), offered a gift card, and
+apologised to a member with no tickets. Each failure became a rule and a test.
+
+60 priority members (balanced across coupon, service call and win-back) received a drafted message: 60 by the LLM (Groq, `openai/gpt-oss-20b`), 0 by the template engine. Guardrails passed for 100%.
+
+> **Proactive service call** (Agent call script), drivers: *Transactions trending down (-1.9/month); No marketing emails opened in last 3m; No transactions last month*  
+> **Checking in on your FreshBasket experience**: Hi, I’m calling from FreshBasket to see how we can make your shopping easier. We’ve added a $10 credit to your Gold account for your favorite dairy items—just pick up your next order and it’s ready to use. Could you share what’s been missing from your recent visits? Thank you for being part of our community, and feel free to let me know how we can help.
+
+> **Personalised coupon** (App push + email), drivers: *Transactions trending down (-1.5/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m*  
+> **Enjoy a Refreshing Treat on Us**: We’ve added a $10 beverage coupon to your loyalty account to help you discover new favorites. Drop by any FreshBasket location and redeem it on your next purchase. We’re excited to see you back soon!
+
+> **Win-back offer** (Email), drivers: *No purchase for 5 months; No marketing emails opened in last 3m; Spend $0/month (last 3m)*  
+> **We’ve Got a Fresh Surprise for You**: Hello, we’ve added a $5 credit to your loyalty account for your favorite frozen foods. Use it on your next visit to FreshBasket and enjoy a tasty treat on us. When you’re ready, just head to the frozen aisle and the cashier will apply the credit automatically. We’re looking forward to seeing you soon.
+
 ## 10. Recommendations
 
 1. **Redefine the churn KPI.** Report *Lapsed* (no purchase 3+ months: win-back) separately from *At-risk Active*. Add a **60-day

@@ -363,7 +363,9 @@ def build() -> str:
     low email and app engagement, and recent support tickets push risk up. On the right is what the store or CRM team actually
     receives: each member's churn probability plus three plain-English reasons, drawn from that member's own SHAP values and
     grouped so the three reasons are different. That's the bridge from a model to an action. One caution: SHAP explains the
-    model, not causation; that's why the next step is an experiment, not a guess.""")
+    model, not causation; that's why the next step is an experiment, not a guess. And the last mile is automated too: for the
+    priority members an LLM on Groq drafts the actual message or call script from these same three reasons, under guardrails that
+    block invented promo codes, false apologies and any mention of tracking.""")
 
     # 10 ── Ablation + segments
     s = d.slide(title="Behaviour predicts churn. Demographics alone are no better than chance.", kicker="Ablation & segments")

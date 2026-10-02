@@ -1,0 +1,10 @@
+# One-click deploy on Render (free plan): New + > Blueprint > select this repo
+services:
+  - type: web
+    name: silent-cart
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false        # paste your key in the Render dashboard (optional)

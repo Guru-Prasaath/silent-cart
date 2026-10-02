@@ -74,3 +74,16 @@ def test_dashboard_callbacks_render():
     assert rows and all(r["risk_band"] == "High" for r in rows)
     kpis, fig, table = app.run_sim(10, 0.15, 15, 0.25, 5, 0.05, 0.25, 6, 0.37)
     assert len(kpis) == 3
+
+
+def test_genai_guardrails_and_template_fallback():
+    from src import genai
+    ctx = {"channel": "App push + email", "recommended_action": "Personalised coupon", "persona": "Fading & frustrated",
+           "membership_tier": "Gold", "preferred_category": "Dairy", "why_flagged": ["2 support tickets in last 3m"],
+           "offer_budget_usd": 10.0}
+    assert genai.check({"subject": "Hi", "message": "Our model predicts your churn risk is high"}, ctx)      # banned terms
+    assert "offer above budget" in genai.check({"subject": "Hi", "message": "Here is $25 off dairy."}, ctx)
+    assert genai.check(genai.template(ctx), ctx) == []                                                     # templates always pass
+    row = pd.read_csv(C.OUTPUTS / "retention_action_list.csv").query("recommended_action != 'Monitor (no paid action)'").iloc[0]
+    d = genai.draft(row, key="")                                                                           # no key -> template
+    assert d["source"].startswith("template") and d["guardrail_pass"] and d["message"]

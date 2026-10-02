@@ -38,6 +38,12 @@ Full narrative: [reports/final_report.md](reports/final_report.md) (and `.pdf`).
 - **Calibrated probabilities plus economics.** Platt calibration makes scores usable as real odds. Each member gets a value at risk, a next best action (service call / coupon / win-back / monitor), and three plain-English SHAP drivers.
 - **Built for the Tailwyndz stack.** MLflow tracking, a PySpark port of the feature pipeline (verified to match pandas exactly on all 4 snapshots), a Databricks job notebook, a FastAPI scoring endpoint, GitHub Actions CI and pytest tests.
 - **Decision-grade extras.** A profit-optimal threshold curve, an A/B test power calculation (about 730 flagged members detect a 15% uplift), Kaplan-Meier survival with log-rank tests, k-means behavioural personas, PSI drift and fairness monitoring, and a [model card](MODEL_CARD.md).
+- **GenAI last mile: retention messages.** For each priority member, an LLM on Groq (`openai/gpt-oss-20b`) drafts a channel-appropriate message: an app push, an email, or a call script for the support agent. Three safeguards:
+  - **Grounded:** the prompt contains only the member's SHAP drivers, persona, preferred category, tier and action.
+  - **Privacy-safe:** no name, ID, age or city is sent.
+  - **Guardrailed:** drafts must stay under the offer budget, use no churn, model or tracking language, and fit a length limit. A failed draft is retried once, then replaced by a template.
+
+  Without a key, the template engine writes every message, so the project always runs.
 - **A product, not just a notebook.** The Dash **Retention Console** has four tabs: KPIs; a filterable action list with a member drill-down (SHAP reasons, persona, activity history); a live scenario simulator with 9 assumption sliders; and an insights tab. Dash runs natively on Databricks Apps.
 
 ## Setup
@@ -54,6 +60,8 @@ Gradient boosting uses scikit-learn rather than LightGBM/XGBoost. Those need the
 
 Optional deep-learning challenger: `pip install -r requirements-dl.txt` (PyTorch). Without it the pipeline simply skips the GRU.
 
+Optional AI messages: copy `.env.example` to `.env` and paste a free Groq key (https://console.groq.com/keys). `.env` is git-ignored.
+
 ## Run
 
 ```bash
@@ -62,7 +70,13 @@ python run_pipeline.py --skip-notebook     # skip re-executing the EDA notebook
 python -m pytest -q                        # leakage, labels, cleaning, API, scenario engine, dashboard
 python app.py                              # Retention Console; ?tab=members|sim|insights links straight to a tab
 uvicorn src.api:app                        # scoring API: GET /health, POST /score
+python -m src.genai --n 60                 # AI-draft retention messages for the top 60 members (Groq; templates without a key)
+python run_pipeline.py --genai             # full run including AI messages
 ```
+
+**Deploy the console.** The `Dockerfile` serves the dashboard with gunicorn, and CI builds the image and checks it responds on every push.
+- **Render (free):** New + → Blueprint → select this repo (`render.yaml`), then optionally add `GROQ_API_KEY`.
+- **Any container host:** `docker build -t silent-cart . && docker run -p 8050:8050 silent-cart`.
 
 The report PDF is printed with headless Google Chrome (or Brave) if installed; otherwise open `reports/final_report.html` and print it to PDF.
 
@@ -108,6 +122,8 @@ python scripts/spark_parity_check.py       # PySpark features == pandas features
 | *Extra:* interactive dashboard | `app.py` + `assets/` (Dash Retention Console) |
 | *Extra:* next-quarter forecast | `outputs/next_quarter_watchlist.csv` |
 | *Extra:* model governance | `MODEL_CARD.md`, `.github/workflows/ci.yml` |
+| *Extra:* AI-drafted retention messages | `src/genai.py`, `outputs/retention_messages.csv`, "Draft with AI" in the dashboard |
+| *Extra:* deployment | `Dockerfile`, `render.yaml` |
 
 ## Assumptions
 
@@ -148,7 +164,8 @@ app.py, assets/      Dash Retention Console                MODEL_CARD.md     mod
 notebooks/           01 EDA (executed), 02 Databricks job  .github/workflows CI (pipeline + tests)
 src/                 config, data_quality, features, analysis, models, explain, scenario, business,
                      personas, survival, monitoring, deep, forecast, model_card, report, presentation,
-                     notebook, spark_features, api, viz
+                     notebook, spark_features, api, genai, viz
+Dockerfile, render.yaml  container + one-click Render deploy
 scripts/             spark_parity_check.py            tests/            pytest suite
 outputs/             CSVs, figures/, models/           reports/          final_report.md/.pdf
 presentation/        churn_presentation.pptx

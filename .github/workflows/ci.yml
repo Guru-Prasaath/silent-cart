@@ -19,3 +19,16 @@ jobs:
         run: python run_pipeline.py --skip-notebook --skip-report --skip-deck
       - name: Tests (leakage, labels, cleaning, API, scenario engine, dashboard)
         run: python -m pytest -q
+
+  docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Retention Console image
+        run: docker build -t silent-cart .
+      - name: Run it and check the dashboard answers
+        run: |
+          docker run -d -p 8050:8050 --name sc silent-cart
+          for i in $(seq 1 30); do curl -sf http://localhost:8050/ > /dev/null && break; sleep 2; done
+          curl -sf http://localhost:8050/_dash-layout > /dev/null && echo "dashboard is up"
+          docker logs sc | tail -5

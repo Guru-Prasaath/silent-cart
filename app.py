@@ -11,10 +11,10 @@ import json
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, dash_table, dcc, html
+from dash import Dash, Input, Output, State, dash_table, dcc, html, no_update
 from plotly.subplots import make_subplots
 
-from src import config as C
+from src import config as C, genai
 from src.scenario import Economics, simulate
 
 O = C.OUTPUTS
@@ -36,6 +36,8 @@ def load():
                "survival_curves", "survival_summary", "retention_scenarios"]}
     gru = O / "deep_model_results.csv"
     tables["deep"] = pd.read_csv(gru) if gru.exists() else None
+    msgs = O / "retention_messages.csv"
+    tables["messages"] = pd.read_csv(msgs) if msgs.exists() else pd.DataFrame(columns=["customer_id"])
     return k, cohort, actions, watch, activity, tables
 
 
@@ -185,6 +187,10 @@ def member_detail(cid, source):
             outcome = html.Span("Actually churned in Apr-Jun 2024" if y.iloc[0] else "Stayed in Apr-Jun 2024",
                                 className="pill " + ("pill-bad" if y.iloc[0] else "pill-good"))
     drivers = [html.Li(d) for d in str(r.top_3_drivers).split("; ")]
+    cached = T["messages"][T["messages"].customer_id == cid] if source == "current" else T["messages"].iloc[0:0]
+    msg_box = message_card(cached.iloc[0].to_dict()) if len(cached) else html.P(
+        "No pre-drafted message for this member yet. Click the button to draft one.", className="muted")
+    llm_ready = genai.api_key() is not None
     return html.Div([
         html.Div([html.H3(f"Member {cid}"), outcome], className="detail-head"),
         html.Div([
@@ -197,8 +203,30 @@ def member_detail(cid, source):
         html.H4("Next best action"),
         html.P([html.Span(r.recommended_action, className="pill pill-action"),
                 f"  expected net value {money(r.expected_net_value)}"]),
+        html.Div([
+            html.Div([html.H4("Draft retention message"),
+                      html.Button("Draft with AI (Groq)" if llm_ready else "Draft (template; add GROQ_API_KEY for AI)",
+                                  id="draft-btn", className="btn",
+                                  disabled=r.recommended_action == "Monitor (no paid action)")], className="detail-head"),
+            dcc.Loading(html.Div(msg_box, id="draft-box"), type="dot"),
+            dcc.Store(id="draft-member", data={"cid": int(cid), "source": source}),
+        ], className="msg-wrap"),
         dcc.Graph(figure=fig, config={"displayModeBar": False}),
     ])
+
+
+def message_card(m: dict):
+    ok = bool(m.get("guardrail_pass", True))
+    src = str(m.get("source", ""))
+    return html.Div([
+        html.Div([html.Span(m.get("channel", ""), className="pill pill-good"),
+                  html.Span("AI-drafted" if src.startswith("groq") else "Template", className="pill"),
+                  html.Span("guardrails passed" if ok else f"guardrail flags: {m.get('guardrail_notes', '')}",
+                            className="pill " + ("pill-good" if ok else "pill-bad"))], className="pills"),
+        html.P(html.B(m.get("subject", ""))),
+        html.P(m.get("message", ""), className="msg"),
+        html.P(f"Source: {src}. Input = drivers, persona, category, tier, action only (no personal data).", className="muted"),
+    ], className="msg-card")
 
 
 # --------------------------------------------------------------------------- simulator
@@ -388,6 +416,16 @@ def show_member(cell, source):
         first = (ACTIONS if source == "current" else WATCH).customer_id.iloc[0]
         return member_detail(first, source)
     return member_detail(int(cell["row_id"]), source)
+
+
+@app.callback(Output("draft-box", "children"), Input("draft-btn", "n_clicks"), State("draft-member", "data"),
+              prevent_initial_call=True)
+def draft_live(n, store):
+    if not n or not store:
+        return no_update
+    df = ACTIONS if store["source"] == "current" else WATCH
+    row = df[df.customer_id == store["cid"]].iloc[0]
+    return message_card(genai.draft(row))
 
 
 @app.callback(Output("s-kpis", "children"), Output("s-chart", "figure"), Output("s-table", "children"),

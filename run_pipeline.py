@@ -160,8 +160,9 @@ def main(args):
     }
     (C.OUTPUTS / "key_metrics.json").write_text(json.dumps(key, indent=2, default=float))
     models.export_mlflow_runs()
-    from src import model_card
+    from src import genai, model_card
     model_card.build()
+    genai.run(actions, n=60, template_only=not args.genai)
 
     step("10/10 Notebook, report and presentation")
     if not args.skip_notebook:
@@ -181,4 +182,5 @@ if __name__ == "__main__":
     ap.add_argument("--skip-notebook", action="store_true")
     ap.add_argument("--skip-report", action="store_true")
     ap.add_argument("--skip-deck", action="store_true")
+    ap.add_argument("--genai", action="store_true", help="draft retention messages with Groq (needs GROQ_API_KEY in env or .env)")
     main(ap.parse_args())

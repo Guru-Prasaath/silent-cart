@@ -1,0 +1,172 @@
+priority_rank,customer_id,recommended_action,persona,top_3_drivers,fingerprint,channel,subject,message,source,guardrail_pass,guardrail_notes
+1,502288,Proactive service call,Fading & frustrated,Transactions trending down (-1.9/month); No marketing emails opened in last 3m; No transactions last month,596ca999b60b,Agent call script,Checking in on your FreshBasket experience,"Hi, I’m calling from FreshBasket to see how we can make your shopping easier. We’ve added a $10 credit to your Gold account for your favorite dairy items—just pick up your next order and it’s ready to use. Could you share what’s been missing from your recent visits? Thank you for being part of our community, and feel free to let me know how we can help.",groq:openai/gpt-oss-20b,True,
+2,500989,Proactive service call,Fading & frustrated,4 support tickets in last 3m; 1.0 transactions/month (last 3m); Transactions trending down (-0.9/month),611c2a53d569,Agent call script,Checking in on your FreshBasket experience,"Hi there, I’m calling from FreshBasket to see how we can make your shopping easier. I’d love to hear how your recent visits have been. We’ve added a $10 beverage credit to your loyalty account—feel free to use it on your next visit. Let me know if there’s anything else I can help with. Thank you for being a valued Platinum member.",groq:openai/gpt-oss-20b,True,
+3,501335,Proactive service call,Fading & frustrated,3 support tickets in last 3m; Transactions trending down (-1.5/month); 0.5 transactions/month (last 3m),7c0f6c83044e,Agent call script,Checking in on your FreshBasket experience,"Hello, I’m calling from FreshBasket to see how we can make your shopping easier. We’ve added a $10 credit to your loyalty account for your favorite dairy items—just use it next time you visit. How can we help you get the most out of your visits? Thank you for being part of our community. Have a great day.",groq:openai/gpt-oss-20b,True,
+4,502092,Personalised coupon,Fading & frustrated,Transactions trending down (-1.5/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m,fdc8f58aea29,App push + email,Enjoy a Refreshing Treat on Us,We’ve added a $10 beverage coupon to your loyalty account to help you discover new favorites. Drop by any FreshBasket location and redeem it on your next purchase. We’re excited to see you back soon!,groq:openai/gpt-oss-20b,True,
+5,501332,Proactive service call,Fading & frustrated,Transactions trending down (-1.5/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m,bc2221056642,Agent call script,Checking in on your FreshBasket experience,"Hello, I’m calling from FreshBasket to see how your shopping has been going. We’ve added a $10 credit to your Gold membership account for your favorite frozen foods—just a little thank you for being a valued member. May I ask what you’re looking for in your next visit? Thank you for choosing FreshBasket, and we’re here if you need anything.",groq:openai/gpt-oss-20b,True,
+6,501442,Proactive service call,Fading & frustrated,No marketing emails opened in last 3m; No transactions last month; No app use in last 3m,f50a654f3b70,Agent call script,Quick Check-In,"Hi, I’m calling from FreshBasket to see how you’re doing. We’ve added a $10 credit to your Platinum account for your favorite frozen foods—just for you. Could you let me know what’s been on your mind lately? I’m here to help. Thank you for being part of our community.",groq:openai/gpt-oss-20b,True,
+7,502184,Proactive service call,Fading & frustrated,Transactions trending down (-1.3/month); 1.0 transactions/month (last 3m); No marketing emails opened in last 3m,898cfa704864,Agent call script,Checking in with you,"Hi, I’m calling from FreshBasket to see how your recent shopping experience has been. We’ve added a $10 beverage credit to your loyalty account—feel free to use it on any drink of your choice. Is there anything we can help with or any items you’d like to add to your next visit? Thank you for being a valued member of our community.",groq:openai/gpt-oss-20b,True,
+8,502373,Proactive service call,Fading & frustrated,4 support tickets in last 3m; Transactions trending down (-1.8/month); 1.0 transactions/month (last 3m),6cf7239b2cae,Agent call script,We’re here to help,"Hello, we’re calling to check in and see how we can make your FreshBasket experience better. We’ve added a $10 credit to your loyalty account for your favorite frozen foods—just use it next time you shop. Is there anything else we can do to support you today? Thank you for being part of our community.",groq:openai/gpt-oss-20b,True,
+9,500853,Proactive service call,Fading & frustrated,3 support tickets in last 3m; No marketing emails opened in last 3m; No transactions last month,acd0bfede9d1,Agent call script,Checking in on your FreshBasket experience,"Hello, we’re reaching out to see how we can help you get the most from your Gold membership. We’ve added a $10.00 offer to your loyalty account for household items—just a small thank you for being part of our community. If you have any questions or need assistance, feel free to let us know. Thank you for choosing FreshBasket.",groq:openai/gpt-oss-20b,True,
+10,500699,Proactive service call,Fading & frustrated,No marketing emails opened in last 3m; No transactions last month; Transactions trending down (-0.8/month),b484076a3557,Agent call script,Checking in on your FreshBasket experience,"Hello, I’m calling from FreshBasket to see how you’re doing. We’ve added a $10 bakery offer to your loyalty account—just for you. May I ask what’s been on your mind lately? Thank you for being a valued Gold member. Feel free to let me know if there’s anything else I can help with.",groq:openai/gpt-oss-20b,True,
+11,500415,Proactive service call,Fading & frustrated,0.7 transactions/month (last 3m); 2 support tickets in last 3m; No marketing emails opened in last 3m,8148ca806ff6,Agent call script,Quick Check-In,"Hi there, we’re calling to see how you’re doing and to let you know we’ve added a $10 household credit to your loyalty account. Is there anything we can help with today? Let us know how we can make your shopping easier. Thank you for being a valued member.",groq:openai/gpt-oss-20b,True,
+12,500519,Proactive service call,Fading & frustrated,2 support tickets in last 3m; 1.0 transactions/month (last 3m); No marketing emails opened in last 3m,ba9dbe364b45,Agent call script,Quick Check-In,"Hello, I’m calling from FreshBasket to see how you’re doing. I’ve added a $10 bakery credit to your loyalty account—just a little something to help with your next loaf or pastry. Could you share what’s been on your mind lately? Thank you for being a valued Gold member, and I’m here if you need anything else.",groq:openai/gpt-oss-20b,True,
+13,500450,Proactive service call,Engaged but service-heavy,Transactions trending down (-3.5/month); No transactions last month; Formal complaint in last 3m,bc94b210d457,Agent call script,Quick Check-In from FreshBasket,"Hello, this is a friendly check‑in from your local FreshBasket team. We’d love to hear how we can make your next visit easier and have added a $10 bakery credit to your loyalty account for you to enjoy. What’s your favorite bakery item? Let us know how we can help—thanks for being part of our community!",groq:openai/gpt-oss-20b,True,
+14,501429,Proactive service call,Fading & frustrated,Transactions trending down (-1.3/month); No marketing emails opened in last 3m; No transactions last month,95986f820181,Agent call script,Quick Check-In,"Hello, we’re calling to see how you’re doing and to let you know we’ve added a $10 offer to your loyalty account for your favorite bakery items. Is there anything we can help with or any new favorites you’d like to try? Feel free to stop by or let us know what you need. Thank you for being a valued member.",groq:openai/gpt-oss-20b,True,
+15,500827,Proactive service call,Fading & frustrated,2 support tickets in last 3m; No marketing emails opened in last 3m; No transactions last month,d224e4ce61f5,Agent call script,Checking in with you,"Hello, I’m calling from FreshBasket to see how you’re doing. I understand you’ve had a couple of support tickets recently, so I’d love to hear how we can help. We’ve added a $10 credit to your loyalty account for personal care items as a thank you for being a Gold member. When you’re ready, just visit the store or our app to redeem it. Let me know if there’s anything else I can do for you.",groq:openai/gpt-oss-20b,True,
+16,500276,Proactive service call,Fading & frustrated,6 support tickets in 6m; 0.7 transactions/month (last 3m); Transactions trending down (-0.9/month),a52cf16ba39d,Agent call script,Quick Check-In,"Hello, we’re calling to see how we can help you with your recent support tickets. We’ve added a $10 offer to your loyalty account for your favorite frozen foods—just pick up what you need next time you visit. How can we make your next trip easier? Thank you for being a valued Silver member.",groq:openai/gpt-oss-20b,True,
+17,500906,Proactive service call,Engaged but service-heavy,Transactions trending down (-1.7/month); 2 support tickets in last 3m; No marketing emails opened in last 3m,e628fd187e39,Agent call script,Quick Check-In,"Hello, I’m calling from FreshBasket to touch base with you. I’d love to hear how your recent visits have been and see if there’s anything we can do to make your shopping easier. I’ve added a $10 credit to your loyalty account for your favorite dairy items—just use it next time you’re in. Let me know if there’s anything else I can help with. Thank you!",groq:openai/gpt-oss-20b,True,
+18,500845,Proactive service call,Fading & frustrated,Transactions trending down (-1.1/month); 1.0 transactions/month (last 3m); No marketing emails opened in last 3m,6bb4f51e635e,Agent call script,Quick check-in from FreshBasket,"Hello, we’re calling to see how your recent visits have been. We’ve added a $10 bakery credit to your loyalty account—just for you. Do you have any favorite items or anything we can help with today? Thank you for being a valued Gold member.",groq:openai/gpt-oss-20b,True,
+19,500282,Proactive service call,Fading & frustrated,0.3 transactions/month (last 3m); Transactions trending down (-0.9/month); Spend $12/month (last 3m),ab885ba64041,Agent call script,Quick check-in about your FreshBasket experience,"Hello, we’re calling to see how your FreshBasket experience has been lately. We’ve added a $10.00 credit to your loyalty account for your favorite frozen foods—just for you. Could you share what you’re looking for in your next visit? Thank you for being a valued Gold member.",groq:openai/gpt-oss-20b,True,
+20,500865,Personalised coupon,Fading & frustrated,Transactions trending down (-2.1/month); No transactions last month; Spend $37/month (last 3m),0d8299af4767,App push + email,Enjoy a Dairy Treat on Us,We’ve added a $10.00 coupon to your loyalty account for your favorite dairy items. Use it next time you shop and treat yourself to something delicious. Let us know if there’s anything else we can help with. Thank you for being a valued Gold member.,groq:openai/gpt-oss-20b,True,
+21,501476,Proactive service call,Fading & frustrated,2 support tickets in last 3m; No marketing emails opened in last 3m; No transactions last month,d224e4ce61f5,Agent call script,Quick Check‑In,"Hello, I’m calling from FreshBasket to see how you’re doing. I see you’ve had a couple of support tickets recently—how can we help? We’ve added a $10 bakery credit to your loyalty account as a thank you for being a Gold member. Feel free to stop by or let me know if you’d like to pick up anything special. Thank you for choosing FreshBasket.",groq:openai/gpt-oss-20b,True,
+22,501535,Proactive service call,Fading & frustrated,Transactions trending down (-1.2/month); 0.3 transactions/month (last 3m); No marketing emails opened in last 3m,8aecd1dd33e4,Agent call script,Checking in with you,"Hi there, we’re calling to see how we can make your FreshBasket experience better. We’ve added a $10 snack‑category credit to your loyalty account—just use it next time you shop. Do you have any questions or anything we can help with today? Thank you for being part of our community.",groq:openai/gpt-oss-20b,True,
+28,501732,Personalised coupon,Fading & frustrated,Transactions trending down (-1.3/month); 0.3 transactions/month (last 3m); No marketing emails opened in last 3m,72899bc2767b,App push + email,Enjoy a Snack Surprise,We’ve added a $10 snack‑category coupon to your loyalty account. Grab your favorite treats on your next visit and let us know how we can make your shopping easier. We’re here for you whenever you need us.,groq:openai/gpt-oss-20b,True,
+32,502208,Personalised coupon,Fading & frustrated,Transactions trending down (-1.5/month); 0.3 transactions/month (last 3m); No marketing emails opened in last 3m,fae9c17373ac,App push + email,Enjoy a Fresh Treat on Us,We’ve added a $10 coupon to your loyalty account for your favorite frozen foods. Use it next time you shop to try something new or stock up on your favorites. Let us know if there’s anything else we can help with. Happy shopping!,groq:openai/gpt-oss-20b,True,
+33,500576,Personalised coupon,Fading & frustrated,Transactions trending down (-2.3/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m,08288a288f52,App push + email,Enjoy a Fresh Dairy Treat on Us,"We’ve added a $10.00 dairy‑focused coupon to your loyalty account—just for you. Pick up your favorite milk, cheese or yogurt the next time you shop and enjoy the savings. Let us know if there’s anything else we can do to make your FreshBasket experience even better. Happy shopping!",groq:openai/gpt-oss-20b,True,
+35,500958,Personalised coupon,Light & low-touch,Transactions trending down (-1.1/month); 0.7 transactions/month (last 3m); Spend $29/month (last 3m),152f787e0b31,App push + email,Enjoy a Refreshing Treat on Us,"We’re excited to offer you a $10 beverage coupon, already added to your loyalty account. Pick your favorite drink on your next visit and enjoy the savings. We hope to see you soon!",groq:openai/gpt-oss-20b,True,
+40,500092,Personalised coupon,Fading & frustrated,0.3 transactions/month (last 3m); Spend $10/month (last 3m); Transactions trending down (-0.8/month),e2cdbda1c741,App push + email,Enjoy a $10 Snack Treat on Us,We’ve added a $10 snack coupon to your loyalty account—just for you. Use it on any snack items during your next visit. We’re excited to see you back soon and hope this makes your shopping a little brighter.,groq:openai/gpt-oss-20b,True,
+41,501645,Personalised coupon,Fading & frustrated,Transactions trending down (-1.3/month); 0.7 transactions/month (last 3m); No marketing emails opened in last 3m,5752632e2a71,App push + email,Enjoy a $10 Snack Surprise,"Hello, we’ve added a $10 personalised coupon to your loyalty account for your favourite snacks. Use it on your next visit to FreshBasket and treat yourself. We’d love to hear what you think—drop us a quick reply or visit the app to share your feedback. Thank you for being part of our community.",groq:openai/gpt-oss-20b,True,
+42,501978,Win-back offer,Lapsed,No purchase for 5 months; No marketing emails opened in last 3m; Spend $0/month (last 3m),0289c3c62874,Email,We’ve Got a Fresh Surprise for You,"Hello, we’ve added a $5 credit to your loyalty account for your favorite frozen foods. Use it on your next visit to FreshBasket and enjoy a tasty treat on us. When you’re ready, just head to the frozen aisle and the cashier will apply the credit automatically. We’re looking forward to seeing you soon.",groq:openai/gpt-oss-20b,True,
+43,501039,Win-back offer,Lapsed,No purchase for 5 months; No marketing emails opened in last 3m; Spend $0/month (last 3m),0289c3c62874,Email,We’ve Got a Small Surprise for You,"Hello,
+
+We’re excited to share a little thank‑you from FreshBasket. A $5 credit has already been added to your loyalty account for household items—just a friendly reminder that we’re here to make your shopping easier.
+
+Whenever you’re ready, simply visit your store or shop online and the credit will apply automatically. We’d love to hear what household products you’re looking for next.
+
+Thank you for being part of our community. We look forward to seeing you soon.",groq:openai/gpt-oss-20b,True,
+45,501688,Personalised coupon,Fading & frustrated,0.3 transactions/month (last 3m); Transactions trending down (-1.1/month); No marketing emails opened in last 3m,de1f8ee797e6,App push + email,Enjoy a $10 Household Coupon on Us,"Hello, we’ve added a $10 coupon for household items to your loyalty account. Use it on your next purchase of any household product. We’re here if you need any help. Enjoy your savings!",groq:openai/gpt-oss-20b,True,
+46,500630,Personalised coupon,Fading & frustrated,Transactions trending down (-3.0/month); No marketing emails opened in last 3m; No transactions last month,0e35a6b00383,App push + email,A Fresh Surprise Just for You,We’ve added a $10 coupon to your loyalty account for fresh produce. Use it next time you shop and enjoy a little extra savings on your favorite fruits and veggies. We’re here if you need any help—just tap the help icon in the app. Happy shopping!,groq:openai/gpt-oss-20b,True,
+48,501505,Personalised coupon,Fading & frustrated,0.3 transactions/month (last 3m); Transactions trending down (-0.9/month); No marketing emails opened in last 3m,21655135795f,App push + email,Enjoy a $10 Personal Care Coupon,We’ve added a $10 coupon to your loyalty account for your favorite personal care items. Use it anytime at checkout to treat yourself. Let us know if there’s anything else we can help with. Enjoy!,groq:openai/gpt-oss-20b,True,
+52,501550,Personalised coupon,Fading & frustrated,No marketing emails opened in last 3m; Transactions trending down (-0.9/month); No transactions last month,6260b646e86b,App push + email,Enjoy a $10 Beverage Coupon,We’ve added a $10 beverage coupon to your loyalty account. Use it on any beverage purchase to treat yourself. Let us know if there’s anything else we can help with. Thank you for being a valued Gold member.,groq:openai/gpt-oss-20b,True,
+55,501495,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve Got a Special Treat for You,"Hi there,
+
+We’ve added a $5 credit to your loyalty account that you can use on any frozen foods item during your next visit. No code needed—just show your membership card at checkout.
+
+We’d love to see you back in the store soon. If you have any questions or need help finding the best frozen picks, feel free to reply to this email.
+
+Thank you for being part of FreshBasket!",groq:openai/gpt-oss-20b,True,
+57,501596,Personalised coupon,Fading & frustrated,Transactions trending down (-2.4/month); No marketing emails opened in last 3m; No transactions last month,d7c858dab340,App push + email,Enjoy a $10 Beverage Coupon on Us,We’ve added a $10 beverage coupon to your loyalty account. Use it on any drink of your choice during your next visit. We’d love to hear what you’re looking for—drop by or let us know if you need any help. Thank you for being part of FreshBasket!,groq:openai/gpt-oss-20b,True,
+59,500163,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve Added a Special Gift to Your Account,"Hello,
+
+We’ve added a $5.00 credit to your loyalty account for household items. Use it on your next visit to FreshBasket.
+
+When you’re ready, just stop by the store or shop online and the credit will be applied automatically.
+
+Thank you for being a valued member.",groq:openai/gpt-oss-20b,True,
+61,502076,Personalised coupon,Fading & frustrated,0.3 transactions/month (last 3m); No marketing emails opened in last 3m; Transactions trending down (-0.9/month),8dd274f0a723,App push + email,Enjoy a Fresh Dairy Treat,We’ve added a $10.00 discount on your favorite dairy items to your loyalty account. Use it on your next visit to try something new or stock up on your staples. We’re here if you need any help—just tap the button below to start shopping.,groq:openai/gpt-oss-20b,True,
+62,500763,Personalised coupon,Fading & frustrated,Transactions trending down (-1.4/month); No transactions last month; Buys 0.0 categories/month,2cf44c905753,App push + email,Enjoy a Fresh Beverage Treat,We’ve added a $10 beverage coupon to your loyalty account to help you enjoy your favorite drinks. Check your app to redeem it and let us know if there’s anything else we can do for you. Thank you for being a valued Gold member.,groq:openai/gpt-oss-20b,True,
+64,501141,Win-back offer,Lapsed,No purchases in last 3m; No marketing emails opened in last 3m; Spend $0/month (last 3m),28dd899ac5a5,Email,We’ve added a special treat to your account,"Hello,
+
+We’ve added a $5.00 bakery credit to your loyalty account as a thank you for being part of our Gold membership. You can use it on any bakery item during your next visit.
+
+We’d love to hear what you’re craving and how we can make your next trip even better. Drop by or let us know if there’s anything we can help with.
+
+Thank you for choosing FreshBasket. We look forward to seeing you soon.",groq:openai/gpt-oss-20b,True,
+65,500361,Win-back offer,Lapsed,No purchase for 5 months; Transactions trending down (-1.0/month); No marketing emails opened in last 3m,6c50c69e7b74,Email,We’ve got a special Dairy treat for you,"Hello,
+
+We’ve added a $5 Dairy offer to your loyalty account as a thank‑you for being a valued Gold member. Pick up fresh milk, cheese, or yogurt on your next visit and enjoy the savings.
+
+We’d love to hear what’s been on your mind—what’s your favorite Dairy product? Drop us a quick reply or visit the store to chat.
+
+Thank you for choosing FreshBasket. See you soon!",groq:openai/gpt-oss-20b,True,
+66,500431,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,A Small Surprise for Your Home,"Hi there,
+
+We’ve added a $5.00 household credit to your loyalty account. It’s ready for you to use on any household items you love.
+
+When you’re ready, just head to the store or shop online and the credit will apply automatically at checkout.
+
+Thank you for being part of FreshBasket. We’re here if you need anything.",groq:openai/gpt-oss-20b,True,
+71,501918,Personalised coupon,Fading & frustrated,No marketing emails opened in last 3m; No transactions last month; No app use in last 3m,f9e24f7b32d3,App push + email,Enjoy a Refreshing Treat on Us,We’ve added a $10 beverage coupon to your loyalty account as a thank‑you for being a valued Gold member. Pick up your favorite drinks next time you shop and enjoy a little extra refreshment on us. Let us know if there’s anything else we can do to help you have a great experience at FreshBasket.,groq:openai/gpt-oss-20b,True,
+72,501585,Personalised coupon,Light & low-touch,0.3 transactions/month (last 3m); Transactions trending down (-1.0/month); No marketing emails opened in last 3m,0ba0d9eb9896,App push + email,Your FreshBasket Household Coupon,"Hello, we’ve added a $10 coupon to your loyalty account for household items. Use it on your next purchase to enjoy great savings. Let us know if you need any help. Thank you for being a valued Platinum member.",groq:openai/gpt-oss-20b,True,
+73,501878,Personalised coupon,Fading & frustrated,Transactions trending down (-1.2/month); 0.7 transactions/month (last 3m); No app use in last 3m,ea721657af40,App push + email,Enjoy a Fresh Dairy Treat,We’ve added a $10 dairy coupon to your loyalty account—just for you. Use it on any dairy item during your next visit. We’d love to hear what you’re looking for next time. Thank you for being part of FreshBasket!,groq:openai/gpt-oss-20b,True,
+75,501600,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,A special thank you from FreshBasket,"Hello,
+
+We’ve missed seeing you in our store and would love to welcome you back. As a Platinum member, you’ve earned a $5 credit in your loyalty account, ready for your next household purchase.
+
+Simply visit us or shop online and the credit will be applied automatically at checkout. We look forward to serving you again soon.
+
+Warm regards,
+Your FreshBasket Team",groq:openai/gpt-oss-20b,True,
+77,501016,Win-back offer,Lapsed,No purchases in last 3m; No marketing emails opened in last 3m; Spend $0/month (last 3m),28dd899ac5a5,Email,We’ve added a special Dairy treat to your account,"Hi there,
+
+We’ve added a $5 Dairy gift to your loyalty account as a thank you for being a valued Gold member. You can redeem it on your next visit for any dairy product of your choice.
+
+Just stop by the store, show your membership card, and the credit will be applied automatically.
+
+We hope to see you soon and enjoy your Dairy selection!",groq:openai/gpt-oss-20b,True,
+78,502250,Personalised coupon,Light & low-touch,Transactions trending down (-3.0/month); No transactions last month; App use 0.7 sessions/month,ae08daa06671,App push + email,We’ve added a special offer just for you,"Hi there,
+
+We’ve added a $10 personal‑care coupon to your loyalty account—no action needed on your part. When you’re ready to shop, simply tap the coupon in the app or show your loyalty card at checkout.
+
+We’re looking forward to seeing you back in the store soon. If you have any questions, feel free to reach out.
+
+Thank you for being a valued Gold member!",groq:openai/gpt-oss-20b,True,
+79,500700,Win-back offer,Lapsed,Transactions trending down (-2.1/month); No purchases in last 3m; No marketing emails opened in last 3m,037a39b24d81,Email,We’ve got a fresh surprise just for you,"Hello,
+
+We’ve added a $5.00 credit to your loyalty account that you can use on any produce items. It’s our way of saying we miss seeing you in the store and would love to welcome you back.
+
+Simply head to the produce aisle on your next visit and the credit will be applied automatically. If you have any questions, feel free to stop by the customer service desk.
+
+We hope to see you soon!",groq:openai/gpt-oss-20b,True,
+80,501583,Win-back offer,Lapsed,3 support tickets in last 3m; No purchases in last 3m; No marketing emails opened in last 3m,9b4ea1b99ead,Email,We’ve added a special treat for you,"Hello,
+
+We’re excited to let you know that a $5.00 snack‑category offer has already been added to your loyalty account. When you next visit, just show your membership card and the credit will be applied automatically.
+
+We’d love to hear what you’re craving next time you’re in. Feel free to drop by or give us a call if you have any questions.
+
+Thank you for being a valued member of FreshBasket.",groq:openai/gpt-oss-20b,True,
+81,500581,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve saved a special offer for you,"Hello,
+
+We’ve added a $5 personal‑care credit to your loyalty account. It’s ready for you to use on your next visit.
+
+Drop by any time and let us help you pick the best items for your needs. We look forward to seeing you again.
+
+Thank you for being a valued Gold member.",groq:openai/gpt-oss-20b,True,
+82,500680,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve saved something special for you,"Hello,
+
+We’ve added a $5 credit to your loyalty account for household items, just in case you’re looking for a little extra help around the house. The credit is ready to use whenever you’re ready.
+
+If you have any questions or need assistance, we’re here to help.
+
+Thank you for being a valued member of FreshBasket.",groq:openai/gpt-oss-20b,True,
+83,501056,Personalised coupon,Fading & frustrated,0.7 transactions/month (last 3m); No marketing emails opened in last 3m; Transactions trending down (-0.9/month),1565743a8af3,App push + email,Enjoy a Fresh Produce Treat on Us,We’ve added a $10 coupon to your loyalty account for your favorite produce items. Use it on your next visit and enjoy fresh picks at a great price. Let us know if there’s anything else we can help with. Thank you for being a valued Gold member.,groq:openai/gpt-oss-20b,True,
+87,502104,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve saved a special offer for you,"Hello,
+
+We’ve added a $5.00 credit to your loyalty account for fresh dairy items. Use it on any dairy product during your next visit.
+
+We’d love to hear how we can make your shopping experience better. Drop by or let us know what you’re looking for.
+
+Thank you for being a valued member.",groq:openai/gpt-oss-20b,True,
+88,500090,Win-back offer,Lapsed,No purchases in last 3m; Transactions trending down (-1.1/month); No marketing emails opened in last 3m,570d997d1973,Email,We’ve saved a special offer for you,"Hello,
+
+We’ve added a $5.00 credit to your loyalty account to help you try some of our favorite personal‑care items. When you next visit, just show your membership card and the credit will be applied automatically.
+
+We’d love to hear what you’re looking for next time. Drop by or let us know if there’s anything we can help with.
+
+Thank you for being part of FreshBasket.",groq:openai/gpt-oss-20b,True,
+90,502108,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve added a special offer for you,"Hello,
+
+We’ve added a $5.00 credit to your loyalty account for your next visit. It’s a great way to try some of our fresh frozen foods. When you’re ready, simply shop in the frozen foods section and the credit will be applied automatically.
+
+We’re looking forward to seeing you again soon.",groq:openai/gpt-oss-20b,True,
+92,500227,Win-back offer,Lapsed,No purchase for 4 months; Transactions trending down (-1.0/month); No marketing emails opened in last 3m,fa5dc80afee8,Email,We’ve added a special treat to your account,"Hello,
+
+We’ve added a $5 credit to your loyalty account for your favorite bakery items. Use it next time you visit and enjoy a fresh selection of breads, pastries, and more.
+
+Simply head to the bakery section and the credit will be applied automatically at checkout.
+
+Thank you for being a valued Gold member. We look forward to seeing you soon.",groq:openai/gpt-oss-20b,True,
+93,502197,Win-back offer,Lapsed,No purchases in last 3m; Transactions trending down (-1.1/month); 2 support tickets in last 3m,dd0c5dc3586c,Email,We’ve added a special offer for you,"Hello, we’re sorry to hear you’ve had some support questions recently. As a valued Platinum member, we’ve added a $5.00 offer to your loyalty account for items in the Personal Care category. You can redeem it anytime at the store or through the FreshBasket app. We look forward to seeing you soon. Thank you for being part of our community.",groq:openai/gpt-oss-20b,True,
+97,502213,Win-back offer,Lapsed,No purchase for 4 months; No marketing emails opened in last 3m; Spend $0/month (last 3m),d6acc5f6746b,Email,A Sweet Surprise Just for You,"Hello,
+
+We’ve added a $5.00 bakery credit to your loyalty account as a thank you for being part of FreshBasket. Use it on any of our fresh breads, pastries, or cakes during your next visit.
+
+We’d love to hear what you’re craving next. Drop by or let us know how we can make your shopping easier.
+
+Thank you for choosing FreshBasket.",groq:openai/gpt-oss-20b,True,
+99,502267,Win-back offer,Lapsed,No purchase in 6+ months; No marketing emails opened in last 3m; Spend $0/month (last 3m),2efcc5f7c54f,Email,We’ve added a special gift to your account,"Hello,
+
+We’ve added a $5 personal‑care gift to your loyalty account as a thank you for being part of FreshBasket. You can use it on any item in the Personal Care aisle during your next visit.
+
+Simply head to the store and let us know you’d like to redeem the gift. We’re looking forward to seeing you again soon.",groq:openai/gpt-oss-20b,True,

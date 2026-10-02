@@ -19,7 +19,7 @@ def next_quarter(profile, activity, cm, train) -> tuple[pd.DataFrame, dict]:
     snap["top_3_drivers"] = explain.top_drivers(explain.shap_values(cm, train, snap), snap)
     snap = scenario.next_best_action(scenario.add_economics(snap))
     snap["risk_band"] = np.select([snap.churn_probability >= cm.threshold, snap.churn_probability >= 0.10], ["High", "Medium"], "Low")
-    out = snap[["customer_id", "segment", "tier", "city", "churn_probability", "predicted_label", "risk_band",
+    out = snap[["customer_id", "segment", "tier", "city", "preferred_category", "churn_probability", "predicted_label", "risk_band",
                 "revenue_at_risk", "recommended_action", "expected_net_value", "top_3_drivers"]]
     out = out.sort_values(["expected_net_value", "churn_probability"], ascending=False)
     out.round(4).to_csv(C.OUTPUTS / "next_quarter_watchlist.csv", index=False)

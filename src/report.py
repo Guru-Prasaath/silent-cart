@@ -164,6 +164,17 @@ def build_markdown() -> str:
                "but not yet proven. **Decision:** keep the transparent logistic model live (its per-member SHAP reasons drive the action list), "
                "shadow-score the GRU for one quarter, and promote it if the gain holds. This is a standard champion/challenger set-up."
                if g and "delta_vs_champion" in g else "The GRU challenger requires PyTorch (`pip install -r requirements-dl.txt`).")
+    msgs_path = O / "retention_messages.csv"
+    if msgs_path.exists():
+        mm = pd.read_csv(msgs_path)
+        n_llm = int(mm.source.str.startswith("groq").sum())
+        ex_msgs = "\n\n".join(f"> **{r.recommended_action}** ({r.channel}), drivers: *{r.top_3_drivers}*  \n> **{r.subject}**: {r.message}"
+                               for _, r in mm.groupby("recommended_action").head(1).iterrows())
+        genai_txt = (f"{len(mm)} priority members (balanced across coupon, service call and win-back) received a drafted message: "
+                     f"{n_llm} by the LLM (Groq, `{mm.source.iloc[0].split(':', 1)[-1] if n_llm else 'n/a'}`), {len(mm) - n_llm} by the template engine. "
+                     f"Guardrails passed for {mm.guardrail_pass.mean():.0%}.\n\n{ex_msgs}")
+    else:
+        genai_txt = "Run `python -m src.genai` to draft messages."
     assumptions = "\n".join(f"{i}. {a.replace('{threshold}', f'{thr:.2f}')}" for i, a in enumerate(ASSUMPTIONS, 1))
 
     return f"""# Silent Cart: FreshBasket Loyalty Churn Prediction & Retention Strategy
@@ -436,6 +447,26 @@ The ranked list with drivers and next best action is in `outputs/next_quarter_wa
 - **Insights:** survival, profit curve, drift, fairness and A/B sizing.
 
 Dash is natively supported on Databricks Apps, so the console can be deployed next to the model.
+
+### 9.9 GenAI last mile: retention messages drafted per member
+The pipeline already says *who* is at risk, *why* (SHAP) and *what to do* (next best action). An LLM now drafts *what to say*:
+an app push, an email, or a call script for the support agent.
+
+**Grounding and privacy.** The prompt contains only the member's three SHAP drivers, persona, preferred category, tier,
+action and offer budget. No name, ID, age or city is sent.
+
+**Guardrails.** Every draft is checked automatically, retried once with the violations fed back, and otherwise replaced by
+a deterministic template. A draft fails if it:
+- mentions churn, models, prediction or tracking;
+- offers more than the budget, or uses percentage offers;
+- contains an invented promo code, gift card or voucher;
+- apologises for a support issue the member never raised;
+- is too long.
+
+The first live run showed why this matters: unguarded drafts invented a promo code (`WELCOME5`), offered a gift card, and
+apologised to a member with no tickets. Each failure became a rule and a test.
+
+{genai_txt}
 
 ## 10. Recommendations
 

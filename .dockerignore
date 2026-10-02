@@ -1,0 +1,8 @@
+.venv/
+.git/
+.env
+mlruns/
+__pycache__/
+.pytest_cache/
+*.pyc
+reports/final_report.html
