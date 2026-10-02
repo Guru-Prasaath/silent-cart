@@ -12,5 +12,6 @@ COPY . .
 RUN test -f outputs/key_metrics.json || python run_pipeline.py --skip-notebook --skip-report --skip-deck
 
 EXPOSE 8050
-# GROQ_API_KEY is optional at runtime: without it the "Draft" button uses templates
-CMD gunicorn app:server --bind 0.0.0.0:${PORT} --workers 2 --timeout 120
+# 1 worker + threads keeps memory under the 512 MB free-plan limit. GROQ_API_KEY is optional:
+# without it the "Draft" button uses templates
+CMD gunicorn app:server --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 120
